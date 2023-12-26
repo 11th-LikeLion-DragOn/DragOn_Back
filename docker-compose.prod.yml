@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     command: gunicorn dragon.wsgi:application --bind 0.0.0.0:8000
     environment:
-      - DJANGO_SETTINGS_MODULE=festival.settings.prod
+      - DJANGO_SETTINGS_MODULE=dragon.settings.prod
     env_file:
       - .env
     expose:
