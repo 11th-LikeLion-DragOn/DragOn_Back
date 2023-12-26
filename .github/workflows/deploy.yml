@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - deploy # 수정하기
+      - develop # 수정하기
 
 jobs:
 
