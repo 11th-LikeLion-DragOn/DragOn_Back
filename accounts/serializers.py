@@ -8,14 +8,24 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'password', 'nickname']
 
     def create(self, validated_data):
+
+        if User.objects.filter(username=validated_data['username']).exists():
+            raise serializers.ValidationError('이미 사용 중인 아이디입니다.')
+
+        if User.objects.filter(nickname__iexact=validated_data['nickname']).exists():
+            raise serializers.ValidationError('이미 사용 중인 닉네임입니다.')
+
         user = User.objects.create(
             username=validated_data['username'],
-            nickname=validated_data['nickname'])
+            password=validated_data['password'],
+            nickname=validated_data['nickname']
+        )
+
         user.set_password(validated_data['password'])
         user.save()
 
         return user
-
+    
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=64)
     password = serializers.CharField(max_length=128, write_only=True)
@@ -42,3 +52,19 @@ class LoginSerializer(serializers.Serializer):
                 return data
         else:
             raise serializers.ValidationError('존재하지 않는 사용자입니다.')
+        
+class NicknameUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','nickname']
+    
+    def validate_nickname(self, value):
+        existing_user = User.objects.filter(nickname__iexact=value).first()
+        if existing_user:
+            raise serializers.ValidationError('이미 사용 중인 닉네임입니다.')
+        return value
+    
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(max_length=128, write_only=True)
+    new_password = serializers.CharField(max_length=128, write_only=True)
+    confirm_new_password = serializers.CharField(max_length=128, write_only=True)
