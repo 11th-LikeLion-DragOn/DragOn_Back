@@ -13,3 +13,7 @@ class User(AbstractUser):
     ]
     profile=models.CharField(max_length=10, choices=profile_choices, null=True)
     followers = models.ManyToManyField('self', symmetrical=False, related_name='following')
+    balls=models.IntegerField(default=0)
+
+    def __str__(self):
+        return f'{self.nickname}'
