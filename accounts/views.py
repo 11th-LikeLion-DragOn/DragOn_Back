@@ -14,6 +14,10 @@ from .models import *
 from .serializers import *
 
 
+#import requests
+
+#from dragon.settings import KAKAO_CLIENT_ID, REDIRECT_URI
+
 # Create your views here.
 class SignUpView(views.APIView):
     serializer_class = SignUpSerializer
@@ -86,3 +90,5 @@ class DeleteView(views.APIView):
         user = request.user
         user.delete()
         return Response({'message': '계정 삭제 성공'}, status=HTTP_204_NO_CONTENT)
+
+
