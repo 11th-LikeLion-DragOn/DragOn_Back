@@ -45,6 +45,6 @@ class Recomments(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class Balls(models.Model):
+class Ball(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_balls')
     count = models.IntegerField()

@@ -48,7 +48,7 @@ class RecommentsSerializer(serializers.ModelSerializer):
 
 class BallsSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Balls
+        model=Ball
         fields='__all__'
 
 class ReactionSerializer(serializers.ModelSerializer):
