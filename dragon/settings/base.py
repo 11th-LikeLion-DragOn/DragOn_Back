@@ -182,3 +182,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+#KAKAO_REST_API_KEY : env('KAKAO_REST_API_KEY')
+#KAKAO_REDIRECT_URI : env('KAKAO_REDIRECT_URI')
+#KAKAO_CLIENT_SECRET_KEY : env('KAKAO_CLIENT_SECRET_KEY')
+

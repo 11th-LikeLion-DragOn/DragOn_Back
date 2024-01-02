@@ -5,11 +5,16 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     nickname=models.CharField(max_length=15)
     profile_choices = [
-        ("빨간색","빨간색"),
-        ("노란색","노란색"),
-        ("회색","회색"),
-        ("핑크색","핑크색"),
-        ("하얀색","하얀색"),
+        ("red","red"),
+        ("yellow","yellow"),
+        ("gray","gray"),
+        ("pink","pink"),
+        ("white","white"),
+        ("0","0")
     ]
-    profile=models.CharField(max_length=10, choices=profile_choices, null=True)
+    profile=models.CharField(max_length=10, choices=profile_choices, default='0')
     followers = models.ManyToManyField('self', symmetrical=False, related_name='following')
+    balls=models.IntegerField(default=0)
+
+    def __str__(self):
+        return f'{self.nickname}'
