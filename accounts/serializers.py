@@ -8,19 +8,9 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'password', 'nickname']
 
     def create(self, validated_data):
-
-        if User.objects.filter(username=validated_data['username']).exists():
-            raise serializers.ValidationError('이미 사용 중인 아이디입니다.')
-
-        if User.objects.filter(nickname__iexact=validated_data['nickname']).exists():
-            raise serializers.ValidationError('이미 사용 중인 닉네임입니다.')
-
         user = User.objects.create(
             username=validated_data['username'],
-            password=validated_data['password'],
-            nickname=validated_data['nickname']
-        )
-
+            nickname=validated_data['nickname'])
         user.set_password(validated_data['password'])
         user.save()
 

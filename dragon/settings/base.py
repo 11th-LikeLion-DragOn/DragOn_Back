@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'accounts',
     'mypage',
     'main',
+
+    
 ]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
