@@ -6,7 +6,7 @@
 
 |                           이지원                            |                             심예원                             |
 | :---------------------------------------------------------: | :------------------------------------------------------------: |
-|               <img width="100" height="100"/>               |                <img width="100" height="100"/>                 |
+|               <img src="https://github.com/11th-LikeLion-DragOn/DragOn_Back/assets/127853111/a70f6bad-e2f4-4dc1-a62f-dd37d9ea9454" width="100" height="100"/>               |                <img src="https://github.com/11th-LikeLion-DragOn/DragOn_Back/assets/127853111/4158e04e-9cda-40d0-b38f-623382d29359" width="100" height="100"/>                 |
 | 메인페이지  | 회원가입&로그인 <br />  마이페이지 |
 
 
