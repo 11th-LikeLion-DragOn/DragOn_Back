@@ -3,45 +3,74 @@ from rest_framework import serializers
 from main.models import *
 from accounts.serializers import *
 
+'''
+class ReactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Reaction
+        fields=['good','question','fighting','fire','Mark','heart']
+'''
 class GoalsSerializer(serializers.ModelSerializer):
+    activate = serializers.BooleanField(default=True)
+    #reaction = ReactionSerializer(many=True, read_only=True)
     class Meta:
         model=Goals
-        fields=['challenge', 'content', 'activate']
-        many = True
+        fields=['id','challenge', 'content', 'activate']
+
+
 
 class ChallengeSerializer(serializers.ModelSerializer):
-    goal=GoalsSerializer(many=True, read_only=True)
-    #period=serializers.SerializerMethodField()
+    ended_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Challenge
+        fields = ['user', 'id', 'name', 'period', 'created_at', 'ended_at']
+
+    def get_ended_at(self, obj):
+        created_at = obj.created_at
+        period = obj.period
+
+        if created_at is not None and period is not None:
+            # ended_at을 년-월-일 형식으로 포맷
+            ended_at = created_at + timezone.timedelta(days=period)
+            return ended_at.strftime('%Y-%m-%d')
+        else:
+            return None
+
+class GoalChallengeSerializer(serializers.ModelSerializer):
+    ended_at = serializers.SerializerMethodField()
+    goals=GoalsSerializer(many=True, read_only=True)
     class Meta:
         model=Challenge
-        fields=['user', 'name', 'period', 'time', 'reaction','created_at', 'goal', 'id' ,'ended_at'] #, 'ended_at'
-    #def get_period(self, obj):
-        # obj.ended_at과 obj.created_at의 차이를 계산하여 반환
-        #period_delta = obj.ended_at - obj.created_at
-        #return period_delta.total_seconds()  # 초 단위로 반환하거나 필요에 따라 다른 형태로 변환
+        fields=['user', 'id', 'name', 'period', 'created_at', 'ended_at', 'goals']
+
+    def get_ended_at(self, obj):
+        created_at = obj.created_at
+        period = obj.period
+
+        if created_at is not None and period is not None:
+            # ended_at을 년-월-일 형식으로 포맷
+            ended_at = created_at + timezone.timedelta(days=period)
+            return ended_at.strftime('%Y-%m-%d')
+        else:
+            return None
 
 
-        
 class AchieveSerializer(serializers.ModelSerializer):
     #is_today = serializers.SerializerMethodField()
+    date = serializers.DateField(read_only=True)
     class Meta:
         model=Achieve
-        fields=['goal', 'is_done', 'today', 'date', 'period'] 
-
-    #def get_is_today(self, obj): #오늘인지 확인
-        #is_today=date.today()
-        #return obj.plan_date == is_today
-        #
+        fields=['goal', 'is_done', 'today', 'date'] 
 
 class CommentsSerializer(serializers.ModelSerializer):
-    #nickname = UserSerializer(many=True, read_only=True)
+    user = NicknameUpdateSerializer(many=True, read_only=True)
     class Meta:
         model=Comments
-        fields='__all__'
+        fields=['id', 'user', 'content', 'created_at', 'updated_at']
 
         
 class RecommentsSerializer(serializers.ModelSerializer):
-    #comments = CommentsSerializer(many=True)
+    comments = CommentsSerializer(many=True)
     class Meta:
         model=Recomments
         fields='__all__'
@@ -51,7 +80,7 @@ class BallsSerializer(serializers.ModelSerializer):
         model=Ball
         fields='__all__'
 
-class ReactionSerializer(serializers.ModelSerializer):
+class ChallengegeSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Reaction
-        fields='__all__'
+        model = Challenge
+        fields = '__all__'

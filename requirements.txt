@@ -13,3 +13,4 @@ typing-extensions==4.7.1
 tzdata==2023.3
 django-cors-headers
 djangorestframework-simplejwt
+requests
