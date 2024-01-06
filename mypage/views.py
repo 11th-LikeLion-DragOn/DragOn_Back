@@ -57,9 +57,15 @@ class TestAddView(views.APIView):
         elif any(result) and not all(result):
             user.profile = 'white'
 
-        user.save()
 
-        return f"프로필이 {user.profile}로 변경되었습니다."
+        # return f"프로필이 {user.profile}로 변경되었습니다."
+
+    def set_user_profile(self, user, new_profile):
+        # 유저 프로필 설정 및 저장
+        user.profile = new_profile
+        user.save()
+        print(f"프로필이 {user.profile}로 변경 fads되었습니다.")
+
 
 class TestView(views.APIView):
     def get(self, request):
@@ -103,6 +109,12 @@ class UserSearchView(views.APIView):
         try:
             user = User.objects.get(nickname=user_nickname)
 
-            return Response({'message': '사용자를 찾았습니다.', 'user_data': {'id': user.id, 'nickname': user.nickname}}, status=status.HTTP_200_OK)
+            user_data = {
+                'id': user.id,
+                'nickname': user.nickname,
+                'profile': user.profile,
+            }
+
+            return Response({'message': '사용자를 찾았습니다.', 'user_data': user_data}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'message': '해당 닉네임의 사용자가 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
