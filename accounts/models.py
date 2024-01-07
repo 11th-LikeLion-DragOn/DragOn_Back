@@ -9,10 +9,10 @@ class User(AbstractUser):
         ("yellow","yellow"),
         ("gray","gray"),
         ("pink","pink"),
-        ("white","white"),
-        ("0","0")
+        ("green","green"),
+        ("none","none")
     ]
-    profile=models.CharField(max_length=10, choices=profile_choices, default='0')
+    profile=models.CharField(max_length=10, choices=profile_choices, default='none')
     followers = models.ManyToManyField('self', symmetrical=False, related_name='following')
     balls=models.IntegerField(default=0)
 
