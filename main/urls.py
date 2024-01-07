@@ -16,6 +16,7 @@ urlpatterns = [
     path("comment/<int:comment_pk>/recomment/", RecommentView.as_view()), #챌린지 대댓글
     path("challenge/<int:challenge_pk>/", DeleteChallengeView.as_view()), #챌린지 그만두기
     path("goaldelete/<int:goal_pk>/", DeleteGoalView.as_view()), #목표 삭제하기
-    path('reactions/<int:challenge_id>/<str:emotion_type>/', ReactionView.as_view())
-
+    path('reactions/<int:challenge_id>/<str:emotion_type>/', ReactionView.as_view()),
+    path("achieverate/", AchievementRate.as_view()), #달성률 확인하기
+    path("calendar/", CalendarView.as_view()),#달력 열어서 달성 여부 확인하기
 ]

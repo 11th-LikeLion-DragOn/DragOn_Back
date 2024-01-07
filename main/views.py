@@ -13,7 +13,7 @@ from .serializers import *
 from django.http import Http404
 from datetime import date
 #from .permissions import IsAuthorOrReadOnly
-
+from urllib.parse import unquote
 
 
 
@@ -236,3 +236,76 @@ class ReactionView(views.APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+class AchievementRate(views.APIView):
+    def get(self, request):
+        challenges = Challenge.objects.all()
+        result = []
+
+        for challenge in challenges:
+            challenge_serializer = ChallengeSerializer(challenge)
+            goals = challenge.goals.all()
+            total_rate=0
+            result.append({
+                    'challenge': challenge_serializer.data
+                })
+
+            for goal in goals:
+                goal_serializer = GoalsSerializer(goal)
+                achieves = goal.achieves.all()
+                done_count = achieves.filter(is_done=True).count()
+                total_count = achieves.count()
+
+                achievement_rate = (done_count / total_count) * 100 if total_count > 0 else 0
+                achievement_rate = round(achievement_rate, 1)
+
+                result.append({
+                    'goal': goal_serializer.data,
+                    'goal_rate': achievement_rate
+                })
+                total_rate+=achievement_rate
+                
+            challenge_rate=(total_rate/goals.count()) if goals.count() > 0 else 0
+            challenge_rate = round(challenge_rate, 1)
+            result.append({
+                'challenge_rate': challenge_rate
+            })
+        return Response({
+            'message': '달성률 조회 성공',
+            'data': {
+                'Achievement Rate': result,
+            }
+        })
+    
+class CalendarView(views.APIView):
+    def get(self, request):
+        raw_date_str = request.GET.get('date', None)
+
+        if not raw_date_str:
+            return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 슬래시 제거
+        date_str = unquote(raw_date_str.rstrip('/'))
+
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({'error': 'Invalid date format. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+
+        achieves = Achieve.objects.filter(date=date)
+
+        data = []
+        for achieve in achieves:
+            goal_content = achieve.goal.content
+            challenge_name = achieve.goal.challenge.name
+            is_done = achieve.is_done
+
+            data.append({
+                'goal_content': goal_content,
+                'challenge_name': challenge_name,
+                'is_done': is_done
+            })
+
+        return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)

@@ -73,11 +73,11 @@ class RecommentsSerializer(serializers.ModelSerializer):
 
 class CommentsSerializer(serializers.ModelSerializer):
     user = ComUserSerializer(read_only=True)
-    recomments = RecommentsSerializer(many=True, read_only=True, source='recomments_set')
+    recomment = RecommentsSerializer(many=True, read_only=True)
     #user = NicknameUpdateSerializer(many=True, read_only=True)
     class Meta:
         model=Comments
-        fields=['id', 'user', 'content', 'created_at', 'updated_at','recomments']
+        fields=['id', 'user', 'content', 'created_at', 'updated_at','recomment']
 
     
 
