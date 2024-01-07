@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework import views, generics
 from rest_framework.status import *
 from rest_framework.response import Response
-
+from .permissions import IsAuthorOrReadOnly
 
 from main.models import *
 from .serializers import *
@@ -32,61 +32,48 @@ class CommentListView(views.APIView): #챌린지에 달린 댓글 보기
 
 # Create your views here.
 class CommentView(views.APIView): 
+
     serializer_class = CommentsSerializer
 
-    def post(self, request, pk):
-        challenge = get_object_or_404(Challenge, pk=pk)
+    def post(self, request, pk, format=None):
         serializer = self.serializer_class(data=request.data)
-        
-        if serializer.is_valid(raise_exception=True):
-            serializer.save( challenge=challenge)
-            return Response({'message': '댓글 작성 성공', 'data': serializer.data}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': '댓글 작성 실패', 'data': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save(user=request.user, challenge_id=pk)
+            return Response({'message': '댓글 작성 성공', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({'message': '댓글 작성 실패', 'data': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-class CommentRView(views.APIView): 
-    serializer_class=CommentsSerializer 
+class CommentRView(views.APIView):
+    serializer_class = CommentsSerializer
 
-    def get_object(self, pk):
-        challenge = get_object_or_404(Challenge, pk=pk)
-        self.check_object_permissions(self.request, challenge)
-        return challenge
-    
+    def get_object(self, comment_pk):
+        return get_object_or_404(Comments, pk=comment_pk)
+
     def patch(self, request, pk, comment_pk):
-        challenge = self.get_object(pk=pk)
-        comment = get_object_or_404(Comments, challenge=challenge, pk=comment_pk)
-        serializer = self.serializer_class(instance=comment, data=request.data, partial=True,
-                                    context={'request': request})
-        
-        if serializer.is_valid(raise_exception=True):
+        comment = self.get_object(comment_pk)
+        serializer = self.serializer_class(instance=comment, data=request.data, partial=True)
+        if serializer.is_valid():
             serializer.save()
-            return Response({'message': '댓글 수정 성공', 'data': serializer.data}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': '댓글 수정 실패', 'data': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': '댓글 수정 성공', 'data': serializer.data})
+        return Response({'message': '댓글 수정 실패', 'data': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, comment_pk):
-        challenge = self.get_object(pk=pk)
-        comment = get_object_or_404(Comments, challenge=challenge, pk=comment_pk)
+        comment = self.get_object(comment_pk)
         comment.delete()
-        
-        return Response({'message': '댓글 삭제 성공'}, status=status.HTTP_200_OK)
+        return Response({'message': '댓글 삭제 성공'}, status=status.HTTP_204_NO_CONTENT)
 
-
-class RecommentView(views.APIView): 
+class RecommentView(views.APIView):
     serializer_class = RecommentsSerializer 
 
     def post(self, request, comment_pk):
-        comment = get_object_or_404(Comments, pk=comment_pk)
+        comment = get_object_or_404(Comments,pk=comment_pk)
         serializer = self.serializer_class(data=request.data)
-        
-        if serializer.is_valid(raise_exception=True):
-            serializer.save(comment=comment)
-            return Response({'message': '대댓글 작성 성공', 'data': serializer.data}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': '대댓글 작성 실패', 'data': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save(user=request.user, comment=comment)
+            return Response({'message': '대댓글 작성 성공', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({'message': '대댓글 작성 실패', 'data': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class DeleteGoalView(views.APIView): 
-    serializer_class = GoalsSerializer 
+    serializer_class = GoalsSerializer  
 
     def get_object(self, goal_pk):
         goal = get_object_or_404(Goals, pk=goal_pk)
@@ -156,7 +143,12 @@ class GoalAddView(views.APIView):
         challenge = get_object_or_404(Challenge, pk=challenge_pk)
         goal = Goals.objects.filter(challenge=challenge)
         serializer = self.serializer_class(goal, many=True)
-        return Response({'message': '목표 목록 조회 성공', 'data': serializer.data})
+
+        combined_data = {
+            'challenge' : challenge.name,
+            'goal':serializer.data
+        }
+        return Response({'message': '목표 목록 조회 성공', 'data': combined_data})
 
     def post(self, request, challenge_pk):
         challenge=get_object_or_404(Challenge, pk=challenge_pk)
@@ -170,13 +162,19 @@ class GoalAddView(views.APIView):
             serializer.save(challenge=challenge)
             goals = Goals.objects.filter(challenge=challenge)
             serializer = self.serializer_class(goals, many=True)
-            return Response({'message': '목표 생성 성공', 'data': serializer.data}, status=HTTP_200_OK)
+            combined_data = {
+            'challenge' : challenge.name,
+            'goal':serializer.data
+            }
+            return Response({'message': '목표 생성 성공', 'data': combined_data}, status=status.HTTP_200_OK)
         else:
-            return Response({'message': '목표 생성 실패', 'data': serializer.errors}, status=HTTP_400_BAD_REQUEST)
+            return Response({'message': '목표 생성 실패', 'data': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class AchievementView(views.APIView):
     serializer_class = AchieveSerializer
+    permission_classes = [IsAuthorOrReadOnly]
 
+    
     def get(self, request, goal_pk):
         goal = get_object_or_404(Goals, pk=goal_pk)
         achieve = get_object_or_404(Achieve, goal=goal, today=True)
