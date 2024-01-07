@@ -80,7 +80,7 @@ class TestAddView(views.APIView):
         elif result == [False, False, False, False, True] or result == [True, False, True, False, True]:
             user.profile = 'pink'
         elif any(result) and not all(result):
-            user.profile = 'white'
+            user.profile = 'green'
 
         user.save()  # Save the updated profile information to the user model
 
