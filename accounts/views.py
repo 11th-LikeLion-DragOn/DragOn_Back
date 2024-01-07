@@ -23,7 +23,7 @@ import requests
 # Create your views here.
 
 import dragon
-
+'''
 BASE_URL = 'http://drag-on.shop'
 
 KAKAO_CONFIG = {
@@ -37,7 +37,7 @@ kakao_login_uri = "https://kauth.kakao.com/oauth/authorize"
 kakao_token_uri = "https://kauth.kakao.com/oauth/token"
 kakao_profile_uri = "https://kapi.kakao.com/v2/user/me"
 
-
+'''
 class SignUpView(views.APIView):
     serializer_class = SignUpSerializer
 
@@ -111,7 +111,7 @@ class DeleteView(views.APIView):
         return Response({'message': '계정 삭제 성공'}, status=HTTP_204_NO_CONTENT)
 
 
-
+'''
 class KakaoLoginView(views.APIView):
     permission_classes = (AllowAny,)
 
@@ -206,7 +206,7 @@ class LoginView(views.APIView):
         return Response({'message': "로그인 실패", 'error': serializer.errors}, status=HTTP_400_BAD_REQUEST)
     
 
-
+'''
 class LogoutView(views.APIView):
     def post(self, request):
         # 로그아웃 처리
