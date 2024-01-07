@@ -3,19 +3,12 @@ from rest_framework import serializers
 from main.models import *
 from accounts.serializers import *
 
-'''
-class ReactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Reaction
-        fields=['good','question','fighting','fire','Mark','heart']
-'''
 class GoalsSerializer(serializers.ModelSerializer):
     activate = serializers.BooleanField(default=True)
     #reaction = ReactionSerializer(many=True, read_only=True)
     class Meta:
         model=Goals
         fields=['id','challenge', 'content', 'activate']
-
 
 
 class ChallengeSerializer(serializers.ModelSerializer):
@@ -62,18 +55,31 @@ class AchieveSerializer(serializers.ModelSerializer):
         model=Achieve
         fields=['goal', 'is_done', 'today', 'date'] 
 
-class CommentsSerializer(serializers.ModelSerializer):
-    user = NicknameUpdateSerializer(many=True, read_only=True)
+
+class ComUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Comments
-        fields=['id', 'user', 'content', 'created_at', 'updated_at']
+        model = User
+        fields=['id','nickname','profile']
+
+
 
         
 class RecommentsSerializer(serializers.ModelSerializer):
-    comments = CommentsSerializer(many=True)
+    #comments = CommentsSerializer(many=True, read_only=True)
+    user = ComUserSerializer(read_only=True)
     class Meta:
         model=Recomments
-        fields='__all__'
+        fields=['id', 'user', 'content', 'created_at', 'updated_at']
+
+class CommentsSerializer(serializers.ModelSerializer):
+    user = ComUserSerializer(read_only=True)
+    recomments = RecommentsSerializer(many=True, read_only=True, source='recomments_set')
+    #user = NicknameUpdateSerializer(many=True, read_only=True)
+    class Meta:
+        model=Comments
+        fields=['id', 'user', 'content', 'created_at', 'updated_at','recomments']
+
+    
 
 class BallsSerializer(serializers.ModelSerializer):
     class Meta:
