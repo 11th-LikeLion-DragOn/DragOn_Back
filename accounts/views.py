@@ -28,7 +28,7 @@ BASE_URL = 'http://drag-on.shop'
 
 KAKAO_CONFIG = {
     "KAKAO_REST_API_KEY":getattr(dragon.settings.base, 'KAKAO_CLIENT_ID', None),
-    "KAKAO_REDIRECT_URI": f"http://127.0.0.1:8000/accounts/kakao/callback/",
+    "KAKAO_REDIRECT_URI": f"http://localhost:8000/accounts/kakao/callback",
     "KAKAO_CLIENT_SECRET_KEY": getattr(dragon.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
     "KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
 }
