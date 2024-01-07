@@ -198,28 +198,13 @@ class KakaoCallbackView(views.APIView):
             return Response({'message':'카카오 회원가입 실패','error':serializer.errors},status=HTTP_400_BAD_REQUEST)
     
 
-
-# class KakaoToDjangoLogin(SocialLoginView):
-#     adapter_class = KakaoOAuth2Adapter
-#     callback_url = KAKAO_CONFIG['KAKAO_REDIRECT_URI']
-#     client_class = OAuth2Client
-        
-class SignUpView(views.APIView):
-    def post(self,request):
-        serializer=SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()               
-            return Response({'message':'회원가입 성공','data':serializer.data}, status=HTTP_201_CREATED)
-        return Response({'message':'회원가입 실패','error':serializer.errors},status=HTTP_400_BAD_REQUEST)
-
-    '''
 class LoginView(views.APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             return Response({'message': "로그인 성공", 'data': serializer.validated_data}, status=HTTP_200_OK)
         return Response({'message': "로그인 실패", 'error': serializer.errors}, status=HTTP_400_BAD_REQUEST)
-    '''
+    
 
 
 class LogoutView(views.APIView):

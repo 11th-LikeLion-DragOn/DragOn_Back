@@ -123,18 +123,28 @@ class ChallengeAddView(views.APIView):
     serializer_class = ChallengeSerializer
 
     def get(self, request):
-        challenges=Challenge.objects.all().order_by('-created_at')
+        challenges = Challenge.objects.all().order_by('-created_at')
         challenge_serializer = self.serializer_class(challenges, many=True)
         return Response({'message': '챌린지 & 목표 목록 조회 성공', 'data': challenge_serializer.data})
 
-
     def post(self, request):
-        challenge_serializer =  self.serializer_class(data=request.data)
+        existing_challenges = Challenge.objects.filter(user=self.request.user)
+        current_time = timezone.now()
+
+        for challenge in existing_challenges:
+            created_at = challenge.created_at
+            period = challenge.period
+            end_date = created_at + timezone.timedelta(days=period)
+
+            if end_date > current_time:
+                return Response({'message': '이전에 생성된 챌린지가 아직 끝나지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        challenge_serializer = self.serializer_class(data=request.data)
         if challenge_serializer.is_valid(raise_exception=True):
-            challenge_serializer.save(user=request.user)
-            return Response({'message': '챌린지 작성 성공', 'data': challenge_serializer.data}, status=HTTP_200_OK)
+            challenge_serializer.save(user=self.request.user)
+            return Response({'message': '챌린지 작성 성공', 'data': challenge_serializer.data}, status=status.HTTP_200_OK)
         else:
-            return Response({'message': '챌린지 작성 실패', 'data': challenge_serializer.errors}, status=HTTP_400_BAD_REQUEST)
+            return Response({'message': '챌린지 작성 실패', 'data': challenge_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class GoalAddView(views.APIView):
     serializer_class = GoalsSerializer

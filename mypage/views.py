@@ -9,7 +9,7 @@ from rest_framework.status import *
 
 from .serializers import *
 
-
+'''
 class TestAddView(views.APIView):
     serializer_class = TestSerializer
 
@@ -47,7 +47,44 @@ class TestAddView(views.APIView):
 
 
         return f"프로필이 {user.profile}로 결정되었습니다."
+'''
 
+class TestAddView(views.APIView):
+    serializer_class = TestSerializer
+
+    def post(self, request, format=None):
+        serializer = TestSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+
+            # 테스트 결과에 따라 프로필 변경
+            profile_result = self.update_user_profile(serializer.data)
+            return Response({'message': '테스트 완료', 'data': serializer.data, 'profile_result': profile_result})
+        return Response(serializer.errors)
+
+    def update_user_profile(self, test_data):
+        # 테스트 결과에 따라 프로필 변경 로직
+        result = [test_data.get(f'question{i}', False) for i in range(1, 6)]
+
+        user = self.request.user
+
+        print(f"Test Data: {test_data}")
+        print(f"Result: {result}")
+
+        if all(result[0:4]) or result == [False, True, True, True, True]:
+            user.profile = 'red'
+        elif all(result[0:3]) or result == [False, False, False, True, True]:
+            user.profile = 'yellow'
+        elif all(result[3:]) or result == [True, True, True, False, False]:
+            user.profile = 'gray'
+        elif result == [False, False, False, False, True] or result == [True, False, True, False, True]:
+            user.profile = 'pink'
+        elif any(result) and not all(result):
+            user.profile = 'white'
+
+        user.save()  # Save the updated profile information to the user model
+
+        return f"프로필이 {user.profile}로 결정되었습니다."
 
 class TestView(views.APIView):
     def get(self, request):
