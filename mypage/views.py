@@ -9,18 +9,6 @@ from rest_framework.status import *
 
 from .serializers import *
 
-'''
-class TestAddView(views.APIView):
-    serializer_class = TestSerializer
-
-    def post(self, request, format=None):
-        serializer = TestSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response({'message': '테스트 완료', 'data': serializer.data})
-        return Response(serializer.errors) 
-
-'''
 
 class TestAddView(views.APIView):
     serializer_class = TestSerializer
@@ -58,13 +46,7 @@ class TestAddView(views.APIView):
             user.profile = 'white'
 
 
-        # return f"프로필이 {user.profile}로 변경되었습니다."
-
-    def set_user_profile(self, user, new_profile):
-        # 유저 프로필 설정 및 저장
-        user.profile = new_profile
-        user.save()
-        print(f"프로필이 {user.profile}로 변경 fads되었습니다.")
+        return f"프로필이 {user.profile}로 결정되었습니다."
 
 
 class TestView(views.APIView):
@@ -101,9 +83,9 @@ class FollowView(views.APIView):
 class FollowingListView(views.APIView):
     def get(self, request, format=None):
         following_list = request.user.following.all()
-        following_usernames = [user.username for user in following_list]
-        return Response({'following_list': following_usernames}, status=status.HTTP_200_OK)
-    
+        serializer = FollowSerializer(following_list, many=True)
+        return Response({'following_list': serializer.data}, status=status.HTTP_200_OK)
+
 class UserSearchView(views.APIView):
     def get(self, request, user_nickname):
         try:

@@ -139,7 +139,8 @@ class ChallengeAddView(views.APIView):
         challenges=Challenge.objects.all().order_by('-created_at')
         challenge_serializer = self.serializer_class(challenges, many=True)
         return Response({'message': '챌린지 & 목표 목록 조회 성공', 'data': challenge_serializer.data})
-    
+
+
     def post(self, request):
         challenge_serializer =  self.serializer_class(data=request.data)
         if challenge_serializer.is_valid(raise_exception=True):
@@ -174,50 +175,57 @@ class GoalAddView(views.APIView):
             return Response({'message': '목표 생성 실패', 'data': serializer.errors}, status=HTTP_400_BAD_REQUEST)
 
 class AchievementView(views.APIView):
-    serializer_class = AchieveSerializer 
+    serializer_class = AchieveSerializer
 
+    def get(self, request, goal_pk):
+        goal = get_object_or_404(Goals, pk=goal_pk)
+        achieve = get_object_or_404(Achieve, goal=goal, today=True)
+        self.check_object_permissions(request, achieve)
 
-    def get_object(self, goal_pk):
-        goal =Goals.objects.get(pk=goal_pk)
-        achieve=Achieve.objects.filter(goal=goal, many=True)
-        self.check_object_permissions(self.request, achieve)
-        return achieve
+        # 이 부분에서 원하는 로직을 추가하거나 필요하면 데이터를 직접 반환
+        achieve_serializer = AchieveSerializer(achieve)
+        return Response({'message': '오늘 목표 조회 성공', 'data': achieve_serializer.data})
 
     def patch(self, request, goal_pk):
-            '''
-            challenge=Challenge.objects.get(pk=challenge_pk)
-            goal=Goals.objects.get(challenge=challenge, pk=goal_pk)
-            achieve=Achieve.objects.get(goal=goal)
-            '''
-            goal = self.get_object(pk=goal_pk)
-            achieve = Achieve.objects.get(goal=goal, today=True)
-            achieve.is_done = True
-            achieve.save()
-            achieve_serializer=AchieveSerializer(achieve)
+        achieve = get_object_or_404(Achieve, goal__pk=goal_pk, today=True)
+        achieve.is_done = not achieve.is_done  # 반대로 변경
+        achieve.save()
+        achieve_serializer = AchieveSerializer(achieve)
 
-            return Response({'message' : '목표 달성 성공', 'data' : achieve_serializer.data})
-
+        return Response({'message': '목표 달성 여부 변경 성공', 'data': achieve_serializer.data})
 
 class ReactionView(views.APIView):
+    EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
+
+    def get_emotion_counts(self, challenge, emotion_type):
+        if emotion_type not in self.EMOTION_TYPES:
+            return {}
+
+        emotion_field = getattr(challenge, emotion_type)
+        count = emotion_field.count()
+
+        return {f'{emotion_type}_count': count}
+
     def post(self, request, challenge_id, emotion_type):
         try:
             challenge = Challenge.objects.get(pk=challenge_id)
         except Challenge.DoesNotExist:
             return Response({'error': 'Challenge not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if emotion_type not in ['good', 'question', 'fighting', 'fire', 'mark', 'heart']:
+        if emotion_type not in self.EMOTION_TYPES:
             return Response({'error': 'Invalid emotion type'}, status=status.HTTP_400_BAD_REQUEST)
 
         emotion_field = getattr(challenge, emotion_type)
 
-        # 현재 사용자가 이미 해당 감정을 선택한 경우, 선택 해제
         if emotion_field.filter(id=request.user.id).exists():
             emotion_field.remove(request.user)
             is_selected = False
         else:
-            # 해당 감정을 선택하지 않은 경우, 선택
             emotion_field.add(request.user)
             is_selected = True
+
+        # 감정 개수도 반환
+        emotion_counts = self.get_emotion_counts(challenge, emotion_type)
 
         response_data = {
             'message': f'{emotion_type} 리액션 변경 성공',
@@ -225,8 +233,8 @@ class ReactionView(views.APIView):
                 'challenge_id': challenge_id,
                 'emotion_type': emotion_type,
                 'is_selected': is_selected,
+                **emotion_counts,
             }
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
-    
