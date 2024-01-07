@@ -17,6 +17,8 @@ class ChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challenge
         fields = ['user', 'id', 'name', 'period', 'created_at', 'ended_at']
+        read_only_fields = ['user']
+
 
     def get_ended_at(self, obj):
         created_at = obj.created_at
