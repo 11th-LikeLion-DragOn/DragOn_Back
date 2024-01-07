@@ -80,7 +80,3 @@ class BallsSerializer(serializers.ModelSerializer):
         model=Ball
         fields='__all__'
 
-class ChallengegeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Challenge
-        fields = '__all__'

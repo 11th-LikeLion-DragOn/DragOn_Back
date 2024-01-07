@@ -25,28 +25,24 @@ class Goals(models.Model):
     content = models.TextField(blank=True)
     activate = models.BooleanField(default=True)
 
+@receiver(post_save, sender=Goals)
+def create_achieves(sender, instance, created, **kwargs):
+    if created:
+        period = instance.challenge.period
+        start_date = timezone.localtime(instance.challenge.created_at).date()
+
+        for _ in range(period):
+            Achieve.objects.create(goal=instance, today=(start_date == timezone.localtime(timezone.now()).date()), date=start_date)
+            start_date += timedelta(days=1)
 
 
 class Achieve(models.Model):
     goal = models.ForeignKey(Goals, on_delete=models.CASCADE, related_name='achieves')
     is_done = models.BooleanField(default=False)
     today = models.BooleanField(default=True)
-    date = models.DateField(null=True, blank=True, editable=False)
+    date = models.DateField(null=True, blank=True)
 
-@receiver(post_save, sender=Goals)
-def create_initial_achieve(sender, instance, created, **kwargs):
-    if created:
-        Achieve.objects.create(goal=instance)
 
-@receiver(post_save, sender=Achieve)
-def create_daily_achieve(sender, instance, created, **kwargs):
-    if created and not instance.today:
-        # 오후 10시 50분에 실행되도록 설정
-        scheduled_time = timezone.now().replace(hour=22, minute=39, second=0, microsecond=0)
-
-        # 현재 시간이 오후 10시 50분 이후인 경우에만 추가로 Achieve 생성
-        if timezone.now() > scheduled_time:
-            Achieve.objects.create(goal=instance.goal, today=False, date=timezone.now().date())
 
 class Comments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
