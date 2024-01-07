@@ -22,10 +22,15 @@ from django.http import JsonResponse
 import requests
 # Create your views here.
 
+import dragon
+
+BASE_URL = 'http://drag-on.shop'
+
 KAKAO_CONFIG = {
-    "KAKAO_REST_API_KEY": "a65b934724ce078571393919e6394e48" ,
-    "KAKAO_REDIRECT_URI": "http://localhost:8000/accounts/kakao/callback",
-    "KAKAO_CLIENT_SECRET_KEY": "ZITCPo8RlFTi3d0qAgqqkaolJ8hg3x9e", 
+    "KAKAO_REST_API_KEY":getattr(dragon.settings.base, 'KAKAO_CLIENT_ID', None),
+    "KAKAO_REDIRECT_URI": f"http://drag-on.shop/accounts/kakao/callback/",
+    "KAKAO_CLIENT_SECRET_KEY": getattr(dragon.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
+    "KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
 }
 
 kakao_login_uri = "https://kauth.kakao.com/oauth/authorize"
