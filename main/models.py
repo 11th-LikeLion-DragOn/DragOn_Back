@@ -20,6 +20,7 @@ class Challenge(models.Model):
     mark=models.ManyToManyField(User, related_name="challgege_mark")
     heart=models.ManyToManyField(User, related_name="challgege_heart")
 
+
 class Goals(models.Model):
     challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='goals')
     content = models.TextField(blank=True)
@@ -53,11 +54,10 @@ class Comments(models.Model):
 
 class Recomments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    comment = models.ForeignKey(Comments, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comments, on_delete=models.CASCADE, related_name='recomment')
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
 
 class Ball(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_balls')
