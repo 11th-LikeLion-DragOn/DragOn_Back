@@ -19,5 +19,5 @@ urlpatterns = [
     path('reactions/<int:challenge_id>/<str:emotion_type>/', ReactionView.as_view()),
     path("achieverate/", AchievementRate.as_view()), #달성률 확인하기
     path("calendar/", CalendarView.as_view()),#달력 열어서 달성 여부 확인하기
-    path("/ball/<int:goal_pk>/", BallView.as_view()) #여의주 사용하기
+    path("ball/<int:goal_pk>/", BallView.as_view()) #여의주 사용하기
 ]

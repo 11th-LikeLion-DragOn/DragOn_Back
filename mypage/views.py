@@ -16,6 +16,13 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404
 from django.utils.http import unquote
 
+
+from rest_framework import status, views
+from rest_framework.response import Response
+from main.models import Challenge, Achieve
+from main.serializers import ChallengeSerializer, GoalsSerializer
+
+
 class TestAddView(views.APIView):
     serializer_class = TestSerializer
 
@@ -111,3 +118,48 @@ class UserSearchView(views.APIView):
             return Response({'message': '해당 닉네임의 사용자가 없거나 팔로우한 사용자입니다.'}, status=status.HTTP_404_NOT_FOUND)
         
 
+class UserAchievementRateView(views.APIView):
+    def get(self, request, user_id):
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        challenges = Challenge.objects.filter(user=user)
+        result = []
+
+        for challenge in challenges:
+            challenge_serializer = ChallengeSerializer(challenge)
+            goals = challenge.goals.all()
+            total_rate = 0
+            result.append({
+                'challenge': challenge_serializer.data
+            })
+
+            for goal in goals:
+                goal_serializer = GoalsSerializer(goal)
+                achieves = goal.achieves.all()
+                done_count = achieves.filter(is_done=True).count()
+                total_count = achieves.count()
+
+                achievement_rate = (done_count / total_count) * 100 if total_count > 0 else 0
+                achievement_rate = round(achievement_rate, 1)
+
+                result.append({
+                    'goal': goal_serializer.data,
+                    'goal_rate': achievement_rate
+                })
+                total_rate += achievement_rate
+
+            challenge_rate = (total_rate / goals.count()) if goals.count() > 0 else 0
+            challenge_rate = round(challenge_rate, 1)
+            result.append({
+                'challenge_rate': challenge_rate
+            })
+
+        return Response({
+            'message': f'Achievement rate for user {user.username}',
+            'data': {
+                'Achievement Rate': result,
+            }
+        })
