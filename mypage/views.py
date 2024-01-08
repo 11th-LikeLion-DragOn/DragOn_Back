@@ -9,45 +9,12 @@ from rest_framework.status import *
 
 from .serializers import *
 
-'''
-class TestAddView(views.APIView):
-    serializer_class = TestSerializer
 
-    def post(self, request, format=None):
-        serializer = TestSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
+from main.models import Achieve
 
-            # 테스트 결과에 따라 프로필 변경
-            profile_result = self.update_user_profile(serializer.data)
-            return Response({'message': '테스트 완료', 'data': serializer.data, 'profile_result': profile_result})
-        return Response(serializer.errors)
-
-    
-
-    def update_user_profile(self, test_data):
-    # 테스트 결과에 따라 프로필 변경 로직
-        result = [test_data.get(f'question{i}', False) for i in range(1, 6)]
-
-        user = self.request.user
-
-        print(f"Test Data: {test_data}")
-        print(f"Result: {result}")
-
-        if all(result[0:4]) or result == [False, True, True, True, True]:
-            user.profile = 'red'
-        elif all(result[0:3]) or result == [False, False, False, True, True]:
-            user.profile = 'yellow'
-        elif all(result[3:]) or result == [True, True, True, False, False]:
-            user.profile = 'gray'
-        elif result == [False, False, False, False, True] or result == [True, False, True, False, True]:
-            user.profile = 'pink'
-        elif any(result) and not all(result):
-            user.profile = 'white'
-
-
-        return f"프로필이 {user.profile}로 결정되었습니다."
-'''
+from datetime import datetime
+from django.shortcuts import get_object_or_404
+from django.utils.http import unquote
 
 class TestAddView(views.APIView):
     serializer_class = TestSerializer
@@ -123,22 +90,6 @@ class FollowingListView(views.APIView):
         serializer = FollowSerializer(following_list, many=True)
         return Response({'following_list': serializer.data}, status=status.HTTP_200_OK)
 
-'''
-class UserSearchView(views.APIView):
-    def get(self, request, user_nickname):
-        try:
-            user = User.objects.get(nickname=user_nickname)
-
-            user_data = {
-                'id': user.id,
-                'nickname': user.nickname,
-                'profile': user.profile,
-            }
-
-            return Response({'message': '사용자를 찾았습니다.', 'user_data': user_data}, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
-            return Response({'message': '해당 닉네임의 사용자가 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
-            '''
 
 class UserSearchView(views.APIView):
     def get(self, request, user_nickname):
@@ -158,3 +109,5 @@ class UserSearchView(views.APIView):
             return Response({'message': '사용자를 찾았습니다.', 'user_data': user_data}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'message': '해당 닉네임의 사용자가 없거나 팔로우한 사용자입니다.'}, status=status.HTTP_404_NOT_FOUND)
+        
+
