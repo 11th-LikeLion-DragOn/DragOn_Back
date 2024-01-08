@@ -277,6 +277,37 @@ class ReactionView(views.APIView):
 
 
 
+class ReactionCountView(views.APIView):
+    EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
+
+    def get_emotion_counts(self, challenge):
+        emotion_counts = {}
+        for emotion_type in self.EMOTION_TYPES:
+            emotion_field = getattr(challenge, emotion_type)
+            count = emotion_field.count()
+            emotion_counts[f'{emotion_type}_count'] = count
+
+        return emotion_counts
+
+    def get(self, request, challenge_id):
+        try:
+            challenge = Challenge.objects.get(pk=challenge_id)
+        except Challenge.DoesNotExist:
+            return Response({'error': 'Challenge not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        emotion_counts = self.get_emotion_counts(challenge)
+
+        response_data = {
+            'message': '리액션 갯수 조회 성공',
+            'data': {
+                'challenge_id': challenge_id,
+                **emotion_counts,
+            }
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
 class AchievementRate(views.APIView):
     def get(self, request):
         challenges = Challenge.objects.all()
