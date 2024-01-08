@@ -285,7 +285,7 @@ class AchievementRate(views.APIView):
         return Response({
             'message': '달성률 조회 성공',
             'data': {
-                'Achievement Rate': result,
+                'AchievementRate': result,
             }
         })
     
@@ -319,3 +319,48 @@ class CalendarView(views.APIView):
             })
 
         return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
+
+
+class BallView(views.APIView):
+    permission_classes = [IsAuthorOrReadOnly]
+
+    def patch(self, request, goal_pk, *args, **kwargs):
+        date_param = self.request.query_params.get('date', None)
+        if not date_param:
+            return Response({"error": "Date parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            date = datetime.strptime(date_param, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        goal = get_object_or_404(Goals, pk=goal_pk)
+
+        # 가져오기 조건에 맞는 Achieve 필터링
+        achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False, today=False)
+
+        if not achieves.exists():
+            return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
+
+        ball = get_object_or_404(Ball, user=request.user)
+        if ball.count==1:
+            # Achieve 업데이트
+            for achieve in achieves:
+                # Ensure that the user owns the Achieve before updating
+                if achieve.goal.challenge.user != request.user:
+                    return Response({"error": "You don't have permission to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
+
+                achieve.is_done = True
+                achieve.save()
+
+            # Ball 업데이트
+            ball.count = 0
+            ball.time = 1
+            ball.save()
+        else:
+            return Response({"error": "You don't have ball to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
+        
+        achieve=Achieve.objects.filter(goal=goal, date=date)
+        data=AchieveSerializer(achieve)
+
+        return Response({"message": "Achieves and Ball updated successfully", "data":data}, status=status.HTTP_200_OK)
