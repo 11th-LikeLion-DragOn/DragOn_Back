@@ -163,3 +163,48 @@ class UserAchievementRateView(views.APIView):
                 'Achievement Rate': result,
             }
         })
+
+
+
+class CalendarView(APIView):
+    def get(self, request):
+        user_id = request.GET.get('user_id', None)
+        raw_date_str = request.GET.get('date', None)
+
+        if not user_id:
+            return Response({'error': 'User ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not raw_date_str:
+            return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 슬래시 제거
+        date_str = unquote(raw_date_str.rstrip('/'))
+
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({'error': 'Invalid date format. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_id = int(user_id)
+        except ValueError:
+            return Response({'error': 'Invalid user ID format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        achieves = Achieve.objects.filter(goal__challenge__user__id=user_id, date=date)
+
+        data = []
+        for achieve in achieves:
+            goal_content = achieve.goal.content
+            challenge_name = achieve.goal.challenge.name
+            is_done = achieve.is_done
+
+            data.append({
+                'goal_content': goal_content,
+                'challenge_name': challenge_name,
+                'is_done': is_done
+            })
+
+        return Response({'user_id': user_id, 'date': date_str, 'data': data}, status=status.HTTP_200_OK)
+
+
+

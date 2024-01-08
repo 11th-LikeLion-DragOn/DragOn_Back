@@ -43,6 +43,9 @@ class Achieve(models.Model):
     today = models.BooleanField(default=True)
     date = models.DateField(null=True, blank=True)
 
+    #def __str__(self):
+    #    return f'{self.goal} - {self.date}'
+
 
 
 class Comments(models.Model):
