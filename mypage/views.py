@@ -123,6 +123,7 @@ class FollowingListView(views.APIView):
         serializer = FollowSerializer(following_list, many=True)
         return Response({'following_list': serializer.data}, status=status.HTTP_200_OK)
 
+'''
 class UserSearchView(views.APIView):
     def get(self, request, user_nickname):
         try:
@@ -137,3 +138,23 @@ class UserSearchView(views.APIView):
             return Response({'message': '사용자를 찾았습니다.', 'user_data': user_data}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'message': '해당 닉네임의 사용자가 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+            '''
+
+class UserSearchView(views.APIView):
+    def get(self, request, user_nickname):
+        try:
+            # 현재 사용자가 팔로우한 사용자의 ID 리스트를 가져옵니다.
+            following_ids = request.user.following.values_list('id', flat=True)
+
+            # 팔로우한 사용자를 제외하고 검색합니다.
+            user = User.objects.exclude(id__in=following_ids).get(nickname=user_nickname)
+
+            user_data = {
+                'id': user.id,
+                'nickname': user.nickname,
+                'profile': user.profile,
+            }
+
+            return Response({'message': '사용자를 찾았습니다.', 'user_data': user_data}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'message': '해당 닉네임의 사용자가 없거나 팔로우한 사용자입니다.'}, status=status.HTTP_404_NOT_FOUND)
