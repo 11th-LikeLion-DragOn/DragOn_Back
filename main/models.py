@@ -63,5 +63,4 @@ class Ball(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_balls')
     challenge=models.ForeignKey(Challenge, on_delete=models.CASCADE, null=True) #챌린지 한 개당 여의주 한개 
     time = models.IntegerField(default=1)
-    count = models.IntegerField(default=0)
-    is_use=models.BooleanField(default=False)
+    count = models.IntegerField(default=1)
