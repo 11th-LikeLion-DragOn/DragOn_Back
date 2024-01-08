@@ -14,7 +14,7 @@ from django.http import Http404
 from datetime import date
 #from .permissions import IsAuthorOrReadOnly
 from urllib.parse import unquote
-
+from django.db import transaction
 
 
 class CommentListView(views.APIView): #챌린지에 달린 댓글 보기
@@ -118,7 +118,7 @@ class ChallengeListView(views.APIView):
             return Response({'message': '챌린지 & 목표 목록 조회 성공', 'data': serializer.data}, status=HTTP_200_OK)
         else:
             return Response({'message': '내가 만든 챌린지가 없습니다.'})
-
+'''
 class ChallengeAddView(views.APIView):
     serializer_class = ChallengeSerializer
 
@@ -142,6 +142,34 @@ class ChallengeAddView(views.APIView):
         challenge_serializer = self.serializer_class(data=request.data)
         if challenge_serializer.is_valid(raise_exception=True):
             challenge_serializer.save(user=self.request.user)
+            return Response({'message': '챌린지 작성 성공', 'data': challenge_serializer.data}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': '챌린지 작성 실패', 'data': challenge_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+'''
+class ChallengeAddView(views.APIView):
+    serializer_class = ChallengeSerializer
+
+    def get(self, request):
+        challenges = Challenge.objects.all().order_by('-created_at')
+        challenge_serializer = self.serializer_class(challenges, many=True)
+        return Response({'message': '챌린지 & 목표 목록 조회 성공', 'data': challenge_serializer.data})
+
+    def post(self, request):
+        existing_challenges = Challenge.objects.filter(user=self.request.user)
+        current_time = timezone.now()
+
+        for challenge in existing_challenges:
+            created_at = challenge.created_at
+            period = challenge.period
+            end_date = created_at + timezone.timedelta(days=period)
+
+            if end_date > current_time:
+                return Response({'message': '이전에 생성된 챌린지가 아직 끝나지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        challenge_serializer = self.serializer_class(data=request.data)
+        if challenge_serializer.is_valid(raise_exception=True):
+            new_challenge=challenge_serializer.save(user=request.user)
+            Ball.objects.create(user=request.user, challenge=new_challenge)
             return Response({'message': '챌린지 작성 성공', 'data': challenge_serializer.data}, status=status.HTTP_200_OK)
         else:
             return Response({'message': '챌린지 작성 실패', 'data': challenge_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -328,39 +356,42 @@ class BallView(views.APIView):
         date_param = self.request.query_params.get('date', None)
         if not date_param:
             return Response({"error": "Date parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
+        date_str = unquote(date_param.rstrip('/'))
 
         try:
-            date = datetime.strptime(date_param, '%Y-%m-%d').date()
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
             return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
 
         goal = get_object_or_404(Goals, pk=goal_pk)
 
-        # 가져오기 조건에 맞는 Achieve 필터링
-        achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False, today=False)
+        # 원자적인 트랜잭션을 시작합니다.
+        with transaction.atomic():
+            # 가져오기 조건에 맞는 Achieve 필터링
+            achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False, today=False)
 
-        if not achieves.exists():
-            return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
+            if not achieves.exists():
+                return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
 
-        ball = get_object_or_404(Ball, user=request.user)
-        if ball.count==1:
-            # Achieve 업데이트
-            for achieve in achieves:
-                # Ensure that the user owns the Achieve before updating
-                if achieve.goal.challenge.user != request.user:
-                    return Response({"error": "You don't have permission to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
+            ball = get_object_or_404(Ball, user=request.user)
+            if ball.count == 1:
+                # Achieve 업데이트
+                for achieve in achieves:
+                    # Ensure that the user owns the Achieve before updating
+                    if achieve.goal.challenge.user != request.user:
+                        return Response({"error": "You don't have permission to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
 
-                achieve.is_done = True
-                achieve.save()
+                    achieve.is_done = True
+                    achieve.save()
 
-            # Ball 업데이트
-            ball.count = 0
-            ball.time = 1
-            ball.save()
-        else:
-            return Response({"error": "You don't have ball to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
-        
-        achieve=Achieve.objects.filter(goal=goal, date=date)
-        data=AchieveSerializer(achieve)
+                # Ball 업데이트
+                ball.count = 0
+                ball.time = 1
+                ball.save()
+            else:
+                return Response({"error": "You don't have ball to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
 
-        return Response({"message": "Achieves and Ball updated successfully", "data":data}, status=status.HTTP_200_OK)
+        achieve = Achieve.objects.filter(goal=goal, date=date)
+        data = AchieveSerializer(achieve,many=True)
+
+        return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
