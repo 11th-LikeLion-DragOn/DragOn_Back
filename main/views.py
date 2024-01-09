@@ -254,7 +254,7 @@ class ReactionView(views.APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-'''
+
 class ReactionCountView(views.APIView):
     EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
 
@@ -327,7 +327,7 @@ class ReactionCountView(views.APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)        
-
+'''
 class AchievementRate(views.APIView):
     # @login_required
     def get(self, request):
@@ -543,8 +543,7 @@ class AchievementView(views.APIView):
                 achieve.save()
                 achieve_serializer=AchieveSerializer(achieve)
                 return Response({'message': '목표 달성 여부 변경 성공', 'data': achieve_serializer.data}, status=status.HTTP_200_OK)
-            
-'''
+        ''''    
 class AllCalendarView(views.APIView):
     def get(self, request, user_pk):
         # 사용자 가져오기
@@ -570,31 +569,30 @@ class AllCalendarView(views.APIView):
 
         # 사용자에게 연결된 가장 최근의 챌린지 가져오기
         recent_challenge = Challenge.objects.filter(user=user).order_by('-created_at').first()
-        
+
         if not recent_challenge:
             return Response({'error': 'No challenge found for the user'}, status=status.HTTP_400_BAD_REQUEST)
 
-            goals=Goals.objects.filter(challenge=recent_challenge)
-            for goal in goals :
-                achieves = Achieve.objects.filter(goal=goal)
+        goalss=Goals.objects.filter(challenge=recent_challenge)
+        for goal in goalss:
+            achieves = Achieve.objects.filter(goal=goal)
 
-        for current_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
+            for current_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
             # 현재 날짜에 해당하는 성취 찾기
-            achieve = achieves.filter(date=current_date)
+                achieve = achieves.filter(date=current_date)
 
-            if achieve:
-                result.append({
-                    'date': current_date.strftime('%Y-%m-%d'),
-                    'goal': achieve.goal.content,
-                    'is_done': achieve.is_done,
-                })
-            else:
-                result.append({
-                    
-                    'date': current_date.strftime('%Y-%m-%d'),
-                    'goal': None,
-                    'is_done': None,
-                })
+                if achieve:
+                    result.append({
+                        'date': current_date.strftime('%Y-%m-%d'),
+                        'goal': achieve.goal.content,
+                        'is_done': achieve.is_done,
+                    })
+                else:
+                    result.append({
+                        'date': current_date.strftime('%Y-%m-%d'),
+                        'goal': None,
+                        'is_done': None,
+                    })
 
-        return Response({'data': result}, status=status.HTTP_200_OK)
+            return Response({'data': result}, status=status.HTTP_200_OK)
         '''

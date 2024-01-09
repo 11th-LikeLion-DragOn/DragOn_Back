@@ -32,7 +32,7 @@ KAKAO_CONFIG = {
     "KAKAO_CLIENT_SECRET_KEY": getattr(dragon.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
     #"KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
 }
-'''
+
 KAKAO_CONFIG = {
     "KAKAO_REST_API_KEY": "a65b934724ce078571393919e6394e48",
     "KAKAO_REDIRECT_URI": "http://localhost:8000/accounts/kakao/callback/",
@@ -42,7 +42,7 @@ KAKAO_CONFIG = {
 kakao_login_uri = "https://kauth.kakao.com/oauth/authorize"
 kakao_token_uri = "https://kauth.kakao.com/oauth/token"
 kakao_profile_uri = "https://kapi.kakao.com/v2/user/me"
-
+'''
 
 class SignUpView(views.APIView):
     serializer_class = SignUpSerializer
