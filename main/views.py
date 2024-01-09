@@ -175,7 +175,7 @@ class GoalAddView(views.APIView):
             return Response({'message': '목표 생성 성공', 'data': combined_data}, status=status.HTTP_200_OK)
         else:
             return Response({'message': '목표 생성 실패', 'data': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
+'''
 class AchievementView(views.APIView):
     serializer_class = AchieveSerializer
     permission_classes = [IsAuthorOrReadOnly]
@@ -197,7 +197,7 @@ class AchievementView(views.APIView):
         achieve_serializer = AchieveSerializer(achieve)
 
         return Response({'message': '목표 달성 여부 변경 성공', 'data': achieve_serializer.data})
-
+'''
 class ReactionView(views.APIView):
     EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
 
@@ -244,37 +244,6 @@ class ReactionView(views.APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
-'''
-class ReactionCountView(views.APIView):
-    EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
-
-    def get_emotion_counts(self, challenge):
-        emotion_counts = {}
-        for emotion_type in self.EMOTION_TYPES:
-            emotion_field = getattr(challenge, emotion_type)
-            count = emotion_field.count()
-            emotion_counts[f'{emotion_type}_count'] = count
-
-        return emotion_counts
-
-    def get(self, request, challenge_id):
-        try:
-            challenge = Challenge.objects.get(pk=challenge_id)
-        except Challenge.DoesNotExist:
-            return Response({'error': 'Challenge not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        emotion_counts = self.get_emotion_counts(challenge)
-
-        response_data = {
-            'message': '리액션 갯수 조회 성공',
-            'data': {
-                'challenge_id': challenge_id,
-                **emotion_counts,
-            }
-        }
-
-        return Response(response_data, status=status.HTTP_200_OK)
-'''
 class ReactionCountView(views.APIView):
     EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
 
@@ -442,3 +411,85 @@ class BallView(views.APIView):
         return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
 
 '''
+class BallView(views.APIView):
+    permission_classes = [IsAuthorOrReadOnly]
+
+    def patch(self, request, goal_pk, *args, **kwargs):
+        date_param = self.request.query_params.get('date', None)
+        if not date_param:
+            return Response({"error": "Date parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
+        date_str = unquote(date_param.rstrip('/'))
+
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        goal = get_object_or_404(Goals, pk=goal_pk)
+
+        # 원자적인 트랜잭션을 시작합니다.
+        with transaction.atomic():
+            # 가져오기 조건에 맞는 Achieve 필터링
+            achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False)
+
+            if not achieves.exists():
+                return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
+
+            ball = get_object_or_404(Ball, user=request.user)
+            if ball.count == 1:
+                # Achieve 업데이트
+                for achieve in achieves:
+                    # Ensure that the user owns the Achieve before updating
+                    if achieve.goal.challenge.user != request.user:
+                        return Response({"error": "You don't have permission to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
+
+                    achieve.is_done = True
+                    achieve.save()
+
+                # Ball 업데이트
+                ball.count = 0
+                ball.time = 1
+                ball.save()
+            else:
+                return Response({"error": "You don't have ball to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
+
+        achieve = Achieve.objects.filter(goal=goal, date=date)
+        data = AchieveSerializer(achieve,many=True)
+
+        return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
+    
+class AchievementView(views.APIView):
+    permission_classes = [IsAuthorOrReadOnly]
+
+    def patch(self, request, goal_pk, *args, **kwargs):
+        date_param = self.request.query_params.get('date', None)
+        if not date_param:
+            return Response({"error": "Date parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
+        date_str = unquote(date_param.rstrip('/'))
+
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if date != timezone.localtime(timezone.now()).date() :
+            return Response({"error": "오늘 날짜가 아닙니다"}, status=status.HTTP_404_NOT_FOUND)
+
+        goal = get_object_or_404(Goals, pk=goal_pk, challenge__user=request.user)
+
+        # 원자적인 트랜잭션을 시작합니다.
+        with transaction.atomic():
+            # 가져오기 조건에 맞는 Achieve 필터링
+            achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False)
+
+            if not achieves.exists():
+                return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            for achieve in achieves:
+                if achieve.goal.challenge.user != request.user:
+                    return Response({"error": "You don't have permission to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
+            
+                achieve.is_done= not achieve.is_done
+                achieve.save()
+                achieve_serializer=AchieveSerializer(achieve)
+                return Response({'message': '목표 달성 여부 변경 성공', 'data': achieve_serializer.data}, status=status.HTTP_200_OK)
