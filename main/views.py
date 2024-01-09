@@ -480,7 +480,7 @@ class AchievementView(views.APIView):
         # 원자적인 트랜잭션을 시작합니다.
         with transaction.atomic():
             # 가져오기 조건에 맞는 Achieve 필터링
-            achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False)
+            achieves = Achieve.objects.filter(goal=goal, date=date)
 
             if not achieves.exists():
                 return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
