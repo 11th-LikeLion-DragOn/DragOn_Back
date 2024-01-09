@@ -124,7 +124,7 @@ class ChallengeAddView(views.APIView):
 
     def post(self, request):
         existing_challenges = Challenge.objects.filter(user=self.request.user)
-        current_time = timezone.now()
+        current_time = timezone.now().date()
 
         for challenge in existing_challenges:
             created_at = challenge.created_at
