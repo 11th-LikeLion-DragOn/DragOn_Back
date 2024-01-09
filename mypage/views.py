@@ -65,16 +65,21 @@ class TestAddView(views.APIView):
 
         return user.profile, profile_message
 
+
 class TestView(views.APIView):
     def get(self, request):
         user = self.request.user
         latest_test = Test.objects.filter(user=user).order_by('-created_at').first()
 
         if latest_test:
-            serializer = TestSerializer(latest_test)
-            return Response({'message': '나의 테스트 결과 확인하기', 'data': serializer.data}, status=HTTP_200_OK)
+            # 테스트 결과에 따라 프로필 변경
+            test_add_view = TestAddView(request=self.request)
+            profile_result = test_add_view.update_user_profile(TestSerializer(latest_test).data)
+            
+            # 해당 테스트 결과 및 프로필 결과를 응답으로 반환
+            return Response({'message': '나의 테스트 결과 확인하기', 'data': TestSerializer(latest_test).data, 'profile_result': profile_result}, status=status.HTTP_200_OK)
         else:
-            return Response({"message": "아직 수행한 테스트가 없습니다. "}, status=404)
+            return Response({"message": "아직 수행한 테스트가 없습니다. "}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ProfileView(views.APIView):
