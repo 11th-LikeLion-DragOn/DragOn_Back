@@ -47,18 +47,23 @@ class TestAddView(views.APIView):
 
         if all(result[0:4]) or result == [False, True, True, True, True]:
             user.profile = 'red'
+            profile_message = "공격형 이무기"
         elif all(result[0:3]) or result == [False, False, False, True, True]:
             user.profile = 'yellow'
+            profile_message = "차분형 이무기"
         elif all(result[3:]) or result == [True, True, True, False, False]:
             user.profile = 'gray'
+            profile_message = "근성형 이무기"
         elif result == [False, False, False, False, True] or result == [True, False, True, False, True]:
             user.profile = 'pink'
+            profile_message = "시너지형 이무기"
         elif any(result) and not all(result):
             user.profile = 'green'
+            profile_message = "도약형 이무기"
 
         user.save()  # Save the updated profile information to the user model
 
-        return f"프로필이 {user.profile}로 결정되었습니다."
+        return user.profile, profile_message
 
 class TestView(views.APIView):
     def get(self, request):

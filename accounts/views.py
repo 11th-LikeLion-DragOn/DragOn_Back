@@ -23,21 +23,27 @@ import requests
 # Create your views here.
 
 import dragon
-'''
-BASE_URL = 'http://drag-on.shop'
 
+#BASE_URL = 'http://drag-on.shop'
+'''
 KAKAO_CONFIG = {
-    "KAKAO_REST_API_KEY":getattr(dragon.settings.base, 'KAKAO_CLIENT_ID', None),
+    "KAKAO_REST_API_KEY":getattr(dragon.settings.base, 'KAKAO_REST_API_KEY', None),
     "KAKAO_REDIRECT_URI": f"http://localhost:8000/accounts/kakao/callback",
     "KAKAO_CLIENT_SECRET_KEY": getattr(dragon.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
-    "KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
+    #"KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
+}
+'''
+KAKAO_CONFIG = {
+    "KAKAO_REST_API_KEY": "a65b934724ce078571393919e6394e48",
+    "KAKAO_REDIRECT_URI": "http://localhost:8000/accounts/kakao/callback/",
+    "KAKAO_CLIENT_SECRET_KEY": "ZITCPo8RlFTi3d0qAgqqkaolJ8hg3x9e", 
 }
 
 kakao_login_uri = "https://kauth.kakao.com/oauth/authorize"
 kakao_token_uri = "https://kauth.kakao.com/oauth/token"
 kakao_profile_uri = "https://kapi.kakao.com/v2/user/me"
 
-'''
+
 class SignUpView(views.APIView):
     serializer_class = SignUpSerializer
 
@@ -109,7 +115,6 @@ class DeleteView(views.APIView):
         user = request.user
         user.delete()
         return Response({'message': '계정 삭제 성공'}, status=HTTP_204_NO_CONTENT)
-
 
 '''
 class KakaoLoginView(views.APIView):
@@ -198,15 +203,10 @@ class KakaoCallbackView(views.APIView):
             return Response({'message':'카카오 회원가입 실패','error':serializer.errors},status=HTTP_400_BAD_REQUEST)
     
 
-class LoginView(views.APIView):
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            return Response({'message': "로그인 성공", 'data': serializer.validated_data}, status=HTTP_200_OK)
-        return Response({'message': "로그인 실패", 'error': serializer.errors}, status=HTTP_400_BAD_REQUEST)
-    
 
+    
 '''
+
 class LogoutView(views.APIView):
     def post(self, request):
         # 로그아웃 처리
@@ -235,6 +235,4 @@ class DuplicateNickView(views.APIView):
             response_data = {'duplicate': False}
 
         return Response(response_data, status=HTTP_200_OK)
-    
-
     
