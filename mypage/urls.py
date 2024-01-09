@@ -13,4 +13,6 @@ urlpatterns = [
     path('search/<str:user_nickname>/', UserSearchView.as_view()),
     path('friend/<int:user_id>/', UserAchievementRateView.as_view()),
     path('fricalendar/', CalendarView.as_view(),),
+    path('fri_profile/<int:user_pk>/', Friend_ProfileView.as_view()),
+
 ]
