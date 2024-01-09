@@ -20,7 +20,7 @@ from django.utils.http import unquote
 from rest_framework import status, views
 from rest_framework.response import Response
 from main.models import Challenge, Achieve
-from main.serializers import ChallengeSerializer, GoalsSerializer
+from main.serializers import ChallengeSerializer, GoalsSerializer, NicknameUpdateSerializer
 
 
 class TestAddView(views.APIView):
@@ -65,16 +65,21 @@ class TestAddView(views.APIView):
 
         return user.profile, profile_message
 
+
 class TestView(views.APIView):
     def get(self, request):
         user = self.request.user
         latest_test = Test.objects.filter(user=user).order_by('-created_at').first()
 
         if latest_test:
-            serializer = TestSerializer(latest_test)
-            return Response({'message': '나의 테스트 결과 확인하기', 'data': serializer.data}, status=HTTP_200_OK)
+            # 테스트 결과에 따라 프로필 변경
+            test_add_view = TestAddView(request=self.request)
+            profile_result = test_add_view.update_user_profile(TestSerializer(latest_test).data)
+            
+            # 해당 테스트 결과 및 프로필 결과를 응답으로 반환
+            return Response({'message': '나의 테스트 결과 확인하기', 'data': TestSerializer(latest_test).data, 'profile_result': profile_result}, status=status.HTTP_200_OK)
         else:
-            return Response({"message": "아직 수행한 테스트가 없습니다. "}, status=404)
+            return Response({"message": "아직 수행한 테스트가 없습니다. "}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ProfileView(views.APIView):
@@ -224,13 +229,22 @@ class Friend_ProfileView(views.APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=404)
 
-        # 해당 사용자의 가장 최근에 만든 챌린지를 가져오기
+        # 사용자의 닉네임 정보 가져오기
+        serializer = NicknameUpdateSerializer(user)
+
+        # 해당 사용자의 가장 최근에 만든 챌린지 가져오기
         try:
             latest_challenge = Challenge.objects.filter(user=user).latest('created_at')
         except Challenge.DoesNotExist:
             latest_challenge = None
 
-        # 시리얼라이즈
-        serializer = UserProfileWithLatestChallengeSerializer(user, context={'latest_challenge': latest_challenge})
+        # 챌린지 정보도 시리얼라이즈
+        challenge_serializer = ChallengeSerializer(latest_challenge) if latest_challenge else None
 
-        return Response(serializer.data)
+        # 응답 데이터 구성
+        response_data = {
+            'user_info': serializer.data,
+            'latest_challenge': challenge_serializer.data if challenge_serializer else None
+        }
+
+        return Response(response_data)
