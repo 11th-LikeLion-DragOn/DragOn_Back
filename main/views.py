@@ -22,6 +22,8 @@ from datetime import timedelta
 from .models import Challenge, Achieve
 from django.utils import timezone
 
+from django.db.models import Q
+
 
 
 
@@ -533,6 +535,7 @@ class AchievementView(views.APIView):
 
 
 
+
 class AllCalendarView(views.APIView):
     def get(self, request, user_pk):
         # 사용자 가져오기
@@ -566,24 +569,14 @@ class AllCalendarView(views.APIView):
         goals = Goals.objects.filter(challenge=recent_challenge)
 
         # 각 목표에 대해 성취 조회
-        for goal in goals:
-            achieves = Achieve.objects.filter(goal=goal)
+        for current_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
+            goal_result = {'date': current_date.strftime('%Y-%m-%d')}
 
-            for current_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
-                # 현재 날짜에 해당하는 성취 찾기
-                achieve = achieves.filter(date=current_date).first()
+            for goal in goals:
+                achieve = Achieve.objects.filter(goal=goal, date=current_date).first()
 
-                if achieve:
-                    result.append({
-                        'date': current_date.strftime('%Y-%m-%d'),
-                        'goal': achieve.goal.content,
-                        'is_done': achieve.is_done,
-                    })
-                else:
-                    result.append({
-                        'date': current_date.strftime('%Y-%m-%d'),
-                        'goal': None,
-                        'is_done': None,
-                    })
+                goal_result[f'goal{goal.id}'] = {'name': goal.content, 'is_done': achieve.is_done} if achieve else None
+
+            result.append(goal_result)
 
         return Response({'data': result}, status=status.HTTP_200_OK)
