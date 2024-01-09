@@ -376,7 +376,7 @@ class AchievementRate(views.APIView):
                 'AchievementRate': result,
             }
         })
-
+'''
 class CalendarView(views.APIView):
     def get(self, request):
         raw_date_str = request.GET.get('date', None)
@@ -410,7 +410,42 @@ class CalendarView(views.APIView):
 
         return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
 
+'''
 
+class CalendarView(views.APIView):
+    def get(self, request):
+        user = request.user
+
+        raw_date_str = request.GET.get('date', None)
+
+        if not raw_date_str:
+            return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 슬래시 제거
+        date_str = unquote(raw_date_str.rstrip('/'))
+
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({'error': 'Invalid date format. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+
+        achieves = Achieve.objects.filter(date=date, goal__challenge__user=user)
+
+        data = []
+        for achieve in achieves:
+            goal_content = achieve.goal.content
+            challenge_name = achieve.goal.challenge.name
+            is_done = achieve.is_done
+
+            data.append({
+                'goal_content': goal_content,
+                'challenge_name': challenge_name,
+                'is_done': is_done
+            })
+
+        return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
+    
+    
 class BallView(views.APIView):
     permission_classes = [IsAuthorOrReadOnly]
 
