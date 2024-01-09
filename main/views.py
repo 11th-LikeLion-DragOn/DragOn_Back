@@ -434,7 +434,7 @@ class CalendarView(views.APIView):
         data = []
         for achieve in achieves:
             goal_content = achieve.goal.content
-            goal_id:goal_id
+            goal_id = achieve.goal.id
             challenge_name = achieve.goal.challenge.name
             is_done = achieve.is_done
 
