@@ -307,7 +307,7 @@ class ReactionCountView(views.APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-
+'''
 class AchievementRate(views.APIView):
     def get(self, request):
         challenges = Challenge.objects.all()
@@ -347,7 +347,59 @@ class AchievementRate(views.APIView):
                 'AchievementRate': result,
             }
         })
-    
+    '''
+
+
+class AchievementRate(views.APIView):
+   # @login_required
+    def get(self, request):
+        user = request.user
+
+        # 현재 사용자가 작성한 챌린지만 가져오기
+        user_challenges = Challenge.objects.filter(user=user)
+
+        result = []
+
+        for challenge in user_challenges:
+            challenge_serializer = ChallengeSerializer(challenge)
+            goals = challenge.goals.all()
+            total_rate = 0
+            total_achieves = Achieve.objects.filter(goal__challenge=challenge)
+            completed_achieves = total_achieves.filter(is_done=True)
+
+            result.append({
+                'challenge': challenge_serializer.data
+            })
+
+            for goal in goals:
+                goal_serializer = GoalsSerializer(goal)
+                achieves = goal.achieves.all()
+                done_count = achieves.filter(is_done=True).count()
+                total_count = achieves.count()
+
+                achievement_rate = (done_count / total_count) * 100 if total_count > 0 else 0
+                achievement_rate = round(achievement_rate, 1)
+
+                result.append({
+                    'goal': goal_serializer.data,
+                    'goal_rate': achievement_rate
+                })
+                total_rate += achievement_rate
+
+            challenge_rate = (completed_achieves.count() / total_achieves.count()) * 100 if total_achieves.count() > 0 else 0
+            challenge_rate = round(challenge_rate, 1)
+
+            result.append({
+                'challenge_rate': challenge_rate
+            })
+
+        return Response({
+            'message': '달성률 조회 성공',
+            'data': {
+                'AchievementRate': result,
+            }
+        })
+
 class CalendarView(views.APIView):
     def get(self, request):
         raw_date_str = request.GET.get('date', None)
