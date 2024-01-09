@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db.models.signals import pre_save
+
 
 class Challenge(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -20,11 +22,15 @@ class Challenge(models.Model):
     mark=models.ManyToManyField(User, related_name="challgege_mark")
     heart=models.ManyToManyField(User, related_name="challgege_heart")
 
+    def __str__(self):
+        return f'{self.id} - {self.user}'
+
 
 class Goals(models.Model):
     challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='goals')
     content = models.TextField(blank=True)
     activate = models.BooleanField(default=True)
+
 
 @receiver(post_save, sender=Goals)
 def create_achieves(sender, instance, created, **kwargs):
@@ -37,14 +43,17 @@ def create_achieves(sender, instance, created, **kwargs):
             start_date += timedelta(days=1)
 
 
+    
+
+
 class Achieve(models.Model):
     goal = models.ForeignKey(Goals, on_delete=models.CASCADE, related_name='achieves')
     is_done = models.BooleanField(default=False)
     today = models.BooleanField(default=True)
     date = models.DateField(null=True, blank=True)
 
-    #def __str__(self):
-    #    return f'{self.goal} - {self.date}'
+    def __str__(self):
+        return f'{self.id} - {self.goal} - {self.date}'
 
 
 
@@ -55,6 +64,9 @@ class Comments(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f'{self.id} - {self.user}'
+
 class Recomments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.ForeignKey(Comments, on_delete=models.CASCADE, related_name='recomment')
@@ -62,8 +74,14 @@ class Recomments(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f'{self.id} - {self.user}'
+
 class Ball(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_balls')
     challenge=models.ForeignKey(Challenge, on_delete=models.CASCADE, null=True) #챌린지 한 개당 여의주 한개 
     time = models.IntegerField(default=1)
     count = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f'{self.id} - {self.user}'

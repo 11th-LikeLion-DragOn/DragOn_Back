@@ -14,3 +14,5 @@ tzdata==2023.3
 django-cors-headers
 djangorestframework-simplejwt
 requests
+#django-apscheduler
+#apscheduler
