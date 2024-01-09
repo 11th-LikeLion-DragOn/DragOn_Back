@@ -57,6 +57,7 @@ class AchieveSerializer(serializers.ModelSerializer):
         model=Achieve
         fields=['goal', 'is_done', 'today', 'date'] 
 
+        read_only_fields = ['today','date']
 
 class ComUserSerializer(serializers.ModelSerializer):
     class Meta:
