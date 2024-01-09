@@ -17,6 +17,17 @@ from urllib.parse import unquote
 from django.db import transaction
 
 
+from django.http import JsonResponse
+from datetime import timedelta
+from .models import Challenge, Achieve
+from django.utils import timezone
+
+
+
+
+
+
+
 class CommentListView(views.APIView): #챌린지에 달린 댓글 보기
     serializer_class = CommentsSerializer
 
@@ -124,7 +135,7 @@ class ChallengeAddView(views.APIView):
 
     def post(self, request):
         existing_challenges = Challenge.objects.filter(user=self.request.user)
-        current_time = timezone.now()
+        current_time = timezone.now().date()
 
         for challenge in existing_challenges:
             created_at = challenge.created_at
@@ -278,6 +289,45 @@ class ReactionCountView(views.APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+'''
+class ReactionCountView(views.APIView):
+    EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
+
+    def get_emotion_counts(self, challenge, user):
+        emotion_counts = {}
+        for emotion_type in self.EMOTION_TYPES:
+            emotion_field = getattr(challenge, emotion_type)
+            count = emotion_field.count()
+            is_clicked = user in emotion_field.all()
+            emotion_counts[f'{emotion_type}_count'] = count
+            emotion_counts[f'{emotion_type}_clicked'] = is_clicked
+
+        return emotion_counts
+
+    def get(self, request, user_pk):
+        try:
+            user = User.objects.get(pk=user_pk)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get the most recent challenge for the user
+        recent_challenge = Challenge.objects.filter(user=user).order_by('-created_at').first()
+
+        if not recent_challenge:
+            return Response({'error': '유저의 챌린지가 아직 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+        emotion_counts = self.get_emotion_counts(recent_challenge, user)
+
+        response_data = {
+            'message': '리액션 갯수 및 클릭 여부 조회 성공',
+            'data': {
+                'challenge_id': recent_challenge.id,
+                **emotion_counts,
+            }
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)        
+'''
 class AchievementRate(views.APIView):
     # @login_required
     def get(self, request):
@@ -493,3 +543,56 @@ class AchievementView(views.APIView):
                 achieve.save()
                 achieve_serializer=AchieveSerializer(achieve)
                 return Response({'message': '목표 달성 여부 변경 성공', 'data': achieve_serializer.data}, status=status.HTTP_200_OK)
+        ''''    
+class AllCalendarView(views.APIView):
+    def get(self, request, user_pk):
+        # 사용자 가져오기
+        user = get_object_or_404(User, pk=user_pk)
+        
+        # 날짜 매개 변수 가져오기
+        date_param = request.GET.get('date')
+
+        if not date_param:
+            return Response({'error': 'Invalid date parameter'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            date_str = unquote(raw_date_str.rstrip('/'))
+        try:
+            selected_date = timezone.datetime.strptime(date_param, '%Y-%m')
+        except ValueError:
+            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # MM의 첫째 날짜 및 마지막 날짜 계산
+        start_date = (selected_date.replace(day=1) - timedelta(days=6)).date()
+        end_date = ((selected_date.replace(day=1) + timedelta(days=31)).replace(day=1) + timedelta(days=6) - timedelta(days=1)).date()
+
+        result = []
+
+        # 사용자에게 연결된 가장 최근의 챌린지 가져오기
+        recent_challenge = Challenge.objects.filter(user=user).order_by('-created_at').first()
+
+        if not recent_challenge:
+            return Response({'error': 'No challenge found for the user'}, status=status.HTTP_400_BAD_REQUEST)
+
+        goalss=Goals.objects.filter(challenge=recent_challenge)
+        for goal in goalss:
+            achieves = Achieve.objects.filter(goal=goal)
+
+            for current_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
+            # 현재 날짜에 해당하는 성취 찾기
+                achieve = achieves.filter(date=current_date)
+
+                if achieve:
+                    result.append({
+                        'date': current_date.strftime('%Y-%m-%d'),
+                        'goal': achieve.goal.content,
+                        'is_done': achieve.is_done,
+                    })
+                else:
+                    result.append({
+                        'date': current_date.strftime('%Y-%m-%d'),
+                        'goal': None,
+                        'is_done': None,
+                    })
+
+            return Response({'data': result}, status=status.HTTP_200_OK)
+        '''

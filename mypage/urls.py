@@ -12,5 +12,5 @@ urlpatterns = [
     path('following-list/', FollowingListView.as_view()),
     path('search/<str:user_nickname>/', UserSearchView.as_view()),
     path('friend/<int:user_id>/', UserAchievementRateView.as_view()),
-    path('fricalendar/', CalendarView.as_view(), name='calendar_view')
+    path('fricalendar/', CalendarView.as_view(),),
 ]
