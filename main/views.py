@@ -118,41 +118,9 @@ class ChallengeListView(views.APIView):
             return Response({'message': '챌린지 & 목표 목록 조회 성공', 'data': serializer.data}, status=HTTP_200_OK)
         else:
             return Response({'message': '내가 만든 챌린지가 없습니다.'})
-'''
+
 class ChallengeAddView(views.APIView):
     serializer_class = ChallengeSerializer
-
-    def get(self, request):
-        challenges = Challenge.objects.all().order_by('-created_at')
-        challenge_serializer = self.serializer_class(challenges, many=True)
-        return Response({'message': '챌린지 & 목표 목록 조회 성공', 'data': challenge_serializer.data})
-
-    def post(self, request):
-        existing_challenges = Challenge.objects.filter(user=self.request.user)
-        current_time = timezone.now()
-
-        for challenge in existing_challenges:
-            created_at = challenge.created_at
-            period = challenge.period
-            end_date = created_at + timezone.timedelta(days=period)
-
-            if end_date > current_time:
-                return Response({'message': '이전에 생성된 챌린지가 아직 끝나지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        challenge_serializer = self.serializer_class(data=request.data)
-        if challenge_serializer.is_valid(raise_exception=True):
-            challenge_serializer.save(user=self.request.user)
-            return Response({'message': '챌린지 작성 성공', 'data': challenge_serializer.data}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': '챌린지 작성 실패', 'data': challenge_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-'''
-class ChallengeAddView(views.APIView):
-    serializer_class = ChallengeSerializer
-
-    def get(self, request):
-        challenges = Challenge.objects.all().order_by('-created_at')
-        challenge_serializer = self.serializer_class(challenges, many=True)
-        return Response({'message': '챌린지 & 목표 목록 조회 성공', 'data': challenge_serializer.data})
 
     def post(self, request):
         existing_challenges = Challenge.objects.filter(user=self.request.user)
@@ -276,7 +244,7 @@ class ReactionView(views.APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
-
+'''
 class ReactionCountView(views.APIView):
     EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
 
@@ -306,52 +274,43 @@ class ReactionCountView(views.APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
-
 '''
-class AchievementRate(views.APIView):
-    def get(self, request):
-        challenges = Challenge.objects.all()
-        result = []
+class ReactionCountView(views.APIView):
+    EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
 
-        for challenge in challenges:
-            challenge_serializer = ChallengeSerializer(challenge)
-            goals = challenge.goals.all()
-            total_rate=0
-            result.append({
-                    'challenge': challenge_serializer.data
-                })
+    def get_emotion_counts(self, challenge, user):
+        emotion_counts = {}
+        for emotion_type in self.EMOTION_TYPES:
+            emotion_field = getattr(challenge, emotion_type)
+            count = emotion_field.count()
+            is_clicked = user in emotion_field.all()
+            emotion_counts[f'{emotion_type}_count'] = count
+            emotion_counts[f'{emotion_type}_clicked'] = is_clicked
 
-            for goal in goals:
-                goal_serializer = GoalsSerializer(goal)
-                achieves = goal.achieves.all()
-                done_count = achieves.filter(is_done=True).count()
-                total_count = achieves.count()
+        return emotion_counts
 
-                achievement_rate = (done_count / total_count) * 100 if total_count > 0 else 0
-                achievement_rate = round(achievement_rate, 1)
+    def get(self, request, challenge_id):
+        try:
+            challenge = Challenge.objects.get(pk=challenge_id)
+        except Challenge.DoesNotExist:
+            return Response({'error': 'Challenge not found'}, status=status.HTTP_404_NOT_FOUND)
 
-                result.append({
-                    'goal': goal_serializer.data,
-                    'goal_rate': achievement_rate
-                })
-                total_rate+=achievement_rate
-                
-            challenge_rate=(total_rate/goals.count()) if goals.count() > 0 else 0
-            challenge_rate = round(challenge_rate, 1)
-            result.append({
-                'challenge_rate': challenge_rate
-            })
-        return Response({
-            'message': '달성률 조회 성공',
+        user = request.user  # 현재 사용자
+
+        emotion_counts = self.get_emotion_counts(challenge, user)
+
+        response_data = {
+            'message': '리액션 갯수 및 클릭 여부 조회 성공',
             'data': {
-                'AchievementRate': result,
+                'challenge_id': challenge_id,
+                **emotion_counts,
             }
-        })
-    '''
+        }
 
+        return Response(response_data, status=status.HTTP_200_OK)
 
 class AchievementRate(views.APIView):
-   # @login_required
+    # @login_required
     def get(self, request):
         user = request.user
 
@@ -432,8 +391,9 @@ class CalendarView(views.APIView):
             })
 
         return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
-'''
 
+
+'''
 class BallView(views.APIView):
     permission_classes = [IsAuthorOrReadOnly]
 
@@ -480,6 +440,5 @@ class BallView(views.APIView):
         data = AchieveSerializer(achieve,many=True)
 
         return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
-    
 
 '''
