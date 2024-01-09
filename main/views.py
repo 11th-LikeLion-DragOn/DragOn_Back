@@ -434,18 +434,20 @@ class CalendarView(views.APIView):
         data = []
         for achieve in achieves:
             goal_content = achieve.goal.content
+            goal_id:goal_id
             challenge_name = achieve.goal.challenge.name
             is_done = achieve.is_done
 
             data.append({
                 'goal_content': goal_content,
+                'goal_id':goal_id,
                 'challenge_name': challenge_name,
                 'is_done': is_done
             })
 
         return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
     
-    
+
 class BallView(views.APIView):
     permission_classes = [IsAuthorOrReadOnly]
 
