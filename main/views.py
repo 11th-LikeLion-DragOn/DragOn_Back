@@ -411,55 +411,6 @@ class CalendarView(views.APIView):
         return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
 
 
-'''
-class BallView(views.APIView):
-    permission_classes = [IsAuthorOrReadOnly]
-
-    def patch(self, request, goal_pk, *args, **kwargs):
-        date_param = self.request.query_params.get('date', None)
-        if not date_param:
-            return Response({"error": "Date parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
-        date_str = unquote(date_param.rstrip('/'))
-
-        try:
-            date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-            return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
-
-        goal = get_object_or_404(Goals, pk=goal_pk)
-
-        # 원자적인 트랜잭션을 시작합니다.
-        with transaction.atomic():
-            # 가져오기 조건에 맞는 Achieve 필터링
-            achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False, today=False)
-
-            if not achieves.exists():
-                return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
-
-            ball = get_object_or_404(Ball, user=request.user)
-            if ball.count == 1:
-                # Achieve 업데이트
-                for achieve in achieves:
-                    # Ensure that the user owns the Achieve before updating
-                    if achieve.goal.challenge.user != request.user:
-                        return Response({"error": "You don't have permission to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
-
-                    achieve.is_done = True
-                    achieve.save()
-
-                # Ball 업데이트
-                ball.count = 0
-                ball.time = 1
-                ball.save()
-            else:
-                return Response({"error": "You don't have ball to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
-
-        achieve = Achieve.objects.filter(goal=goal, date=date)
-        data = AchieveSerializer(achieve,many=True)
-
-        return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
-
-'''
 class BallView(views.APIView):
     permission_classes = [IsAuthorOrReadOnly]
 
@@ -543,7 +494,8 @@ class AchievementView(views.APIView):
                 achieve_serializer=AchieveSerializer(achieve)
                 return Response({'message': '목표 달성 여부 변경 성공', 'data': achieve_serializer.data}, status=status.HTTP_200_OK)
 
-'''
+
+
 class AllCalendarView(views.APIView):
     def get(self, request, user_pk):
         # 사용자 가져오기
@@ -573,30 +525,28 @@ class AllCalendarView(views.APIView):
         if not recent_challenge:
             return Response({'error': 'No challenge found for the user'}, status=status.HTTP_400_BAD_REQUEST)
 
-        goalss=Goals.objects.filter(challenge=recent_challenge)
-        for goal in goalss:
+        # 챌린지의 모든 목표 가져오기
+        goals = Goals.objects.filter(challenge=recent_challenge)
+
+        # 각 목표에 대해 성취 조회
+        for goal in goals:
             achieves = Achieve.objects.filter(goal=goal)
 
             for current_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
-            # 현재 날짜에 해당하는 성취 찾기
-                achieves = achieves.filter(date=current_date)
-                for achieve in achieves:
-                    goal=achieve.goal.content
-                    is_done = achieve.is_done
+                # 현재 날짜에 해당하는 성취 찾기
+                achieve = achieves.filter(date=current_date).first()
 
+                if achieve:
+                    result.append({
+                        'date': current_date.strftime('%Y-%m-%d'),
+                        'goal': achieve.goal.content,
+                        'is_done': achieve.is_done,
+                    })
+                else:
+                    result.append({
+                        'date': current_date.strftime('%Y-%m-%d'),
+                        'goal': None,
+                        'is_done': None,
+                    })
 
-                    if achieve:
-                        result.append({
-                            'date': current_date.strftime('%Y-%m-%d'),
-                            'goal': goal,
-                            'is_done': is_done,
-                        })
-                    else:
-                        result.append({
-                            'date': current_date.strftime('%Y-%m-%d'),
-                            'goal': None,
-                            'is_done': None,
-                        })
-
-                return Response({'data': result}, status=status.HTTP_200_OK)
-            '''
+        return Response({'data': result}, status=status.HTTP_200_OK)

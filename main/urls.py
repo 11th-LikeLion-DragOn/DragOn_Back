@@ -22,6 +22,6 @@ urlpatterns = [
     path("ball/<int:goal_pk>/", BallView.as_view()), #여의주 사용하기
     # path("allcalendar/<int:user_id>/<str:year_month>/", AllCalendarView.as_view())
     path("reaction-count/<int:challenge_id>/",ReactionCountView.as_view()),
-    #path("allcalendar/<int:user_pk>/",AllCalendarView.as_view()),
+    path("allcalendar/<int:user_pk>/",AllCalendarView.as_view()),
 
 ]

@@ -20,7 +20,7 @@ from django.utils.http import unquote
 from rest_framework import status, views
 from rest_framework.response import Response
 from main.models import Challenge, Achieve
-from main.serializers import ChallengeSerializer, GoalsSerializer
+from main.serializers import ChallengeSerializer, GoalsSerializer, NicknameUpdateSerializer
 
 
 class TestAddView(views.APIView):
@@ -224,13 +224,22 @@ class Friend_ProfileView(views.APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=404)
 
-        # 해당 사용자의 가장 최근에 만든 챌린지를 가져오기
+        # 사용자의 닉네임 정보 가져오기
+        serializer = NicknameUpdateSerializer(user)
+
+        # 해당 사용자의 가장 최근에 만든 챌린지 가져오기
         try:
             latest_challenge = Challenge.objects.filter(user=user).latest('created_at')
         except Challenge.DoesNotExist:
             latest_challenge = None
 
-        # 시리얼라이즈
-        serializer = UserProfileWithLatestChallengeSerializer(user, context={'latest_challenge': latest_challenge})
+        # 챌린지 정보도 시리얼라이즈
+        challenge_serializer = ChallengeSerializer(latest_challenge) if latest_challenge else None
 
-        return Response(serializer.data)
+        # 응답 데이터 구성
+        response_data = {
+            'user_info': serializer.data,
+            'latest_challenge': challenge_serializer.data if challenge_serializer else None
+        }
+
+        return Response(response_data)
