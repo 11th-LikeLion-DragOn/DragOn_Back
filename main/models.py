@@ -39,8 +39,9 @@ def create_achieves(sender, instance, created, **kwargs):
         start_date = timezone.localtime(instance.challenge.created_at).date()
 
         for _ in range(period):
-            Achieve.objects.create(goal=instance, today=(start_date == timezone.localtime(timezone.now()).date()), date=start_date)
+            Achieve.objects.create(goal=instance, date=start_date)
             start_date += timedelta(days=1)
+
 
 
     
@@ -49,7 +50,7 @@ def create_achieves(sender, instance, created, **kwargs):
 class Achieve(models.Model):
     goal = models.ForeignKey(Goals, on_delete=models.CASCADE, related_name='achieves')
     is_done = models.BooleanField(default=False)
-    today = models.BooleanField(default=True)
+    #today = models.BooleanField(default=True)
     date = models.DateField(null=True, blank=True)
 
     def __str__(self):
