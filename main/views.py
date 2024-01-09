@@ -380,7 +380,7 @@ class CalendarView(views.APIView):
             })
 
         return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
-
+'''
 
 class BallView(views.APIView):
     permission_classes = [IsAuthorOrReadOnly]
@@ -428,3 +428,6 @@ class BallView(views.APIView):
         data = AchieveSerializer(achieve,many=True)
 
         return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
+    
+
+'''
