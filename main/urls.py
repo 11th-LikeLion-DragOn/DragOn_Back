@@ -21,4 +21,5 @@ urlpatterns = [
     path("calendar/", CalendarView.as_view()),#달력 열어서 달성 여부 확인하기
     #path("ball/<int:goal_pk>/", BallView.as_view()), #여의주 사용하기
     # path("allcalendar/<int:user_id>/<str:year_month>/", AllCalendarView.as_view())
+    path("reaction-count/<int:challenge_id>/",ReactionCountView.as_view()),
 ]
