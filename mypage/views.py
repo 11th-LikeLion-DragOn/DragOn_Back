@@ -215,3 +215,22 @@ class CalendarView(APIView):
 
 
 
+
+
+class Friend_ProfileView(views.APIView):
+    def get(self, request, user_pk):
+        try:
+            user = User.objects.get(pk=user_pk)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+
+        # 해당 사용자의 가장 최근에 만든 챌린지를 가져오기
+        try:
+            latest_challenge = Challenge.objects.filter(user=user).latest('created_at')
+        except Challenge.DoesNotExist:
+            latest_challenge = None
+
+        # 시리얼라이즈
+        serializer = UserProfileWithLatestChallengeSerializer(user, context={'latest_challenge': latest_challenge})
+
+        return Response(serializer.data)

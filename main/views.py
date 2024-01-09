@@ -326,7 +326,6 @@ class ReactionCountView(views.APIView):
             }
         }
 
-        return Response(response_data, status=status.HTTP_200_OK)        
 '''
 class AchievementRate(views.APIView):
     # @login_required
@@ -543,7 +542,8 @@ class AchievementView(views.APIView):
                 achieve.save()
                 achieve_serializer=AchieveSerializer(achieve)
                 return Response({'message': '목표 달성 여부 변경 성공', 'data': achieve_serializer.data}, status=status.HTTP_200_OK)
-        ''''    
+
+'''
 class AllCalendarView(views.APIView):
     def get(self, request, user_pk):
         # 사용자 가져오기
@@ -555,9 +555,9 @@ class AllCalendarView(views.APIView):
         if not date_param:
             return Response({'error': 'Invalid date parameter'}, status=status.HTTP_400_BAD_REQUEST)
             
-            date_str = unquote(raw_date_str.rstrip('/'))
+        date_str = unquote(date_param.rstrip('/'))
         try:
-            selected_date = timezone.datetime.strptime(date_param, '%Y-%m')
+            selected_date = timezone.datetime.strptime(date_str, '%Y-%m')
         except ValueError:
             return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -579,20 +579,24 @@ class AllCalendarView(views.APIView):
 
             for current_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
             # 현재 날짜에 해당하는 성취 찾기
-                achieve = achieves.filter(date=current_date)
+                achieves = achieves.filter(date=current_date)
+                for achieve in achieves:
+                    goal=achieve.goal.content
+                    is_done = achieve.is_done
 
-                if achieve:
-                    result.append({
-                        'date': current_date.strftime('%Y-%m-%d'),
-                        'goal': achieve.goal.content,
-                        'is_done': achieve.is_done,
-                    })
-                else:
-                    result.append({
-                        'date': current_date.strftime('%Y-%m-%d'),
-                        'goal': None,
-                        'is_done': None,
-                    })
 
-            return Response({'data': result}, status=status.HTTP_200_OK)
-        '''
+                    if achieve:
+                        result.append({
+                            'date': current_date.strftime('%Y-%m-%d'),
+                            'goal': goal,
+                            'is_done': is_done,
+                        })
+                    else:
+                        result.append({
+                            'date': current_date.strftime('%Y-%m-%d'),
+                            'goal': None,
+                            'is_done': None,
+                        })
+
+                return Response({'data': result}, status=status.HTTP_200_OK)
+            '''
