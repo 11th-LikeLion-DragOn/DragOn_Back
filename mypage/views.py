@@ -170,7 +170,7 @@ class UserAchievementRateView(views.APIView):
         return Response({
             'message': f'Achievement rate for user {user.username}',
             'data': {
-                'Achievement Rate': result,
+                'AchievementRate': result,
             }
         })
 
