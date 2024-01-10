@@ -575,7 +575,7 @@ class AllCalendarView(views.APIView):
             for goal in goals:
                 achieve = Achieve.objects.filter(goal=goal, date=current_date).first()
 
-                goal_result[f'goal{goal.id}'] = {'name': goal.content, 'is_done': achieve.is_done} if achieve else None
+                goal_result[f'goal_id:{goal.id}'] = {'name': goal.content, 'is_done': achieve.is_done} if achieve else None
 
             result.append(goal_result)
 
