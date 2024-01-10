@@ -26,3 +26,8 @@ class FollowSerializer(serializers.ModelSerializer):
         model = User  # Replace 'User' with the actual name of your User model
         fields = ['id', 'username', 'profile', 'nickname']
 
+
+class AllProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','nickname','balls']
