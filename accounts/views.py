@@ -112,7 +112,7 @@ class DeleteView(views.APIView):
         user.delete()
         return Response({'message': '계정 삭제 성공'}, status=HTTP_204_NO_CONTENT)
 
-'''
+
 class KakaoLoginView(views.APIView):
     permission_classes = (AllowAny,)
 
@@ -201,7 +201,7 @@ class KakaoCallbackView(views.APIView):
 
 
     
-'''
+
 
 class LogoutView(views.APIView):
     def post(self, request):
