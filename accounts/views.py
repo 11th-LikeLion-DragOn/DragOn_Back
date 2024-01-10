@@ -23,7 +23,7 @@ import requests
 # Create your views here.
 
 import dragon
-
+'''
 #BASE_URL = 'http://drag-on.shop'
 
 KAKAO_CONFIG = {
@@ -39,7 +39,7 @@ kakao_login_uri = "https://kauth.kakao.com/oauth/authorize"
 kakao_token_uri = "https://kauth.kakao.com/oauth/token"
 kakao_profile_uri = "https://kapi.kakao.com/v2/user/me"
 
-
+'''
 class SignUpView(views.APIView):
     serializer_class = SignUpSerializer
 
@@ -200,7 +200,7 @@ class KakaoCallbackView(views.APIView):
     
 
 
-    
+
 '''
 
 class LogoutView(views.APIView):
