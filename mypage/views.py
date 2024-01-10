@@ -230,7 +230,7 @@ class Friend_ProfileView(views.APIView):
             return Response({'error': 'User not found'}, status=404)
 
         # 사용자의 닉네임 정보 가져오기
-        serializer = NicknameUpdateSerializer(user)
+        serializer = AllProfileSerializer(user)
 
         # 해당 사용자의 가장 최근에 만든 챌린지 가져오기
         try:
