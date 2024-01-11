@@ -21,7 +21,8 @@ from django.http import JsonResponse
 #from dragon.settings import KAKAO_CLIENT_ID, REDIRECT_URI
 import requests
 # Create your views here.
-
+import allauth
+from rest_framework import generics
 import dragon
 
 BASE_URL = 'http://drag-on.shop'
