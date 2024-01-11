@@ -43,10 +43,6 @@ def create_achieves(sender, instance, created, **kwargs):
             start_date += timedelta(days=1)
 
 
-
-    
-
-
 class Achieve(models.Model):
     goal = models.ForeignKey(Goals, on_delete=models.CASCADE, related_name='achieves')
     is_done = models.BooleanField(default=False)

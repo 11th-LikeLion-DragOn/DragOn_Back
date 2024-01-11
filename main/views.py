@@ -441,7 +441,7 @@ class AchievementView(views.APIView):
 
 
 
-
+'''
 class AllCalendarView(views.APIView):
     def get(self, request, user_pk):
         # 사용자 가져오기
@@ -482,6 +482,52 @@ class AllCalendarView(views.APIView):
                 achieve = Achieve.objects.filter(goal=goal, date=current_date).first()
 
                 goal_result[f'goal_id:{goal.id}'] = {'name': goal.content, 'is_done': achieve.is_done} if achieve else None
+
+            result.append(goal_result)
+
+        return Response({'data': result}, status=status.HTTP_200_OK)
+    '''
+
+class AllCalendarView(views.APIView):
+    def get(self, request, user_pk):
+        # 사용자 가져오기
+        user = get_object_or_404(User, pk=user_pk)
+        
+        # 날짜 매개 변수 가져오기
+        date_param = request.GET.get('date')
+
+        if not date_param:
+            return Response({'error': 'Invalid date parameter'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        date_str = unquote(date_param.rstrip('/'))
+        try:
+            selected_date = timezone.datetime.strptime(date_str, '%Y-%m')
+        except ValueError:
+            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # MM의 첫째 날짜 및 마지막 날짜 계산
+        start_date = (selected_date.replace(day=1) - timedelta(days=6)).date()
+        end_date = ((selected_date.replace(day=1) + timedelta(days=31)).replace(day=1) + timedelta(days=6) - timedelta(days=1)).date()
+
+        result = []
+
+        # 사용자에게 연결된 가장 최근의 챌린지 가져오기
+        recent_challenge = Challenge.objects.filter(user=user).order_by('-created_at').first()
+
+        if not recent_challenge:
+            return Response({'error': 'No challenge found for the user'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 챌린지의 모든 목표 가져오기
+        goals = Goals.objects.filter(challenge=recent_challenge)
+
+        # 각 목표에 대해 성취 조회
+        for current_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
+            goal_result = {'date': current_date.strftime('%Y-%m-%d')}
+
+            for goal in goals:
+                achieve = Achieve.objects.filter(goal=goal, date=current_date).first()
+
+                goal_result[f'goal_id:{goal.id}'] = {'is_done': achieve.is_done} if achieve else {'is_done': None}
 
             result.append(goal_result)
 
