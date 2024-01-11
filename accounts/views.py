@@ -32,7 +32,7 @@ KAKAO_CONFIG = {
     #"KAKAO_REDIRECT_URI": f"http://drag-on.shop/accounts/kakao/callback",
     "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback/",
     "KAKAO_CLIENT_SECRET_KEY": getattr(dragon.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
-    #"KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
+    "KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
 }
 
 
