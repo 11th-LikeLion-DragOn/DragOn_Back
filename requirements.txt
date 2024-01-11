@@ -16,3 +16,4 @@ djangorestframework-simplejwt
 requests
 #django-apscheduler
 #apscheduler
+django-crontab

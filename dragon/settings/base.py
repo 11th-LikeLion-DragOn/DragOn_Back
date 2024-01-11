@@ -49,6 +49,20 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
 
+    'rest_framework.authtoken',
+    'rest_auth',
+
+    # django-allauth
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'rest_auth.registration',
+    # providers(카카오가 아니어도, 네이버, 구글, 페이스북 가능)
+    'allauth.socialaccount.providers.kakao',  
+
+
+
     'accounts',
     'mypage',
     'main',
@@ -56,6 +70,7 @@ INSTALLED_APPS = [
     
 ]
 
+SITE_ID = 1
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -73,15 +88,16 @@ SIMPLE_JWT = {
 }
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',     # 추가
-    'django.middleware.common.CommonMiddleware', # 추가
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #'allauth.account.middleware.AccountMiddleware',
 ]
 
 # cors 에러
