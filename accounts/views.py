@@ -25,6 +25,7 @@ import allauth
 from rest_framework import generics
 import dragon
 
+'''
 BASE_URL = 'http://drag-on.shop'
 
 KAKAO_CONFIG = {
@@ -34,7 +35,7 @@ KAKAO_CONFIG = {
     "KAKAO_CLIENT_SECRET_KEY": getattr(dragon.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
     "KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
 }
-
+'''
 
 
 kakao_login_uri = "https://kauth.kakao.com/oauth/authorize"
@@ -114,7 +115,7 @@ class DeleteView(views.APIView):
         user.delete()
         return Response({'message': '계정 삭제 성공'}, status=HTTP_204_NO_CONTENT)
 
-
+'''
 class KakaoLoginView(views.APIView):
     permission_classes = (AllowAny,)
 
@@ -127,7 +128,7 @@ class KakaoLoginView(views.APIView):
         res = redirect(uri)
         return res
     
-'''
+
 
 class KakaoCallbackView(views.APIView):
     permission_classes = (AllowAny,)
@@ -201,7 +202,7 @@ class KakaoCallbackView(views.APIView):
             return Response({'message':'카카오 회원가입 실패','error':serializer.errors},status=HTTP_400_BAD_REQUEST)
     
 
-'''
+
 
 
 class KakaoLoginView(views.APIView):
@@ -288,6 +289,8 @@ class KakaoCallbackView(views.APIView):
                 if serializer1.is_valid():
                     return Response({'message':'카카오 회원가입 성공','data':serializer1.validated_data}, status=HTTP_201_CREATED)
             return Response({'message':'카카오 회원가입 실패','error':serializer.errors},status=HTTP_400_BAD_REQUEST)
+'''
+
 
 class LogoutView(views.APIView):
     def post(self, request):
