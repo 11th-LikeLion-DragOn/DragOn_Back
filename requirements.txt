@@ -16,6 +16,6 @@ djangorestframework-simplejwt
 requests
 #django-apscheduler
 #apscheduler
-#django-crontab
+django-crontab
 django-rest-auth
 django-allauth==0.43.0
