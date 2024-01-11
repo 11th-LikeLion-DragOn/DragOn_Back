@@ -188,29 +188,7 @@ class GoalAddView(views.APIView):
             return Response({'message': '목표 생성 성공', 'data': combined_data}, status=status.HTTP_200_OK)
         else:
             return Response({'message': '목표 생성 실패', 'data': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-'''
-class AchievementView(views.APIView):
-    serializer_class = AchieveSerializer
-    permission_classes = [IsAuthorOrReadOnly]
 
-    
-    def get(self, request, goal_pk):
-        goal = get_object_or_404(Goals, pk=goal_pk)
-        achieve = get_object_or_404(Achieve, goal=goal, today=True)
-        self.check_object_permissions(request, achieve)
-
-        # 이 부분에서 원하는 로직을 추가하거나 필요하면 데이터를 직접 반환
-        achieve_serializer = AchieveSerializer(achieve)
-        return Response({'message': '오늘 목표 조회 성공', 'data': achieve_serializer.data})
-
-    def patch(self, request, goal_pk):
-        achieve = get_object_or_404(Achieve, goal__pk=goal_pk, today=True)
-        achieve.is_done = not achieve.is_done  # 반대로 변경
-        achieve.save()
-        achieve_serializer = AchieveSerializer(achieve)
-
-        return Response({'message': '목표 달성 여부 변경 성공', 'data': achieve_serializer.data})
-'''
 class ReactionView(views.APIView):
     EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
 
@@ -291,44 +269,7 @@ class ReactionCountView(views.APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-'''
-class ReactionCountView(views.APIView):
-    EMOTION_TYPES = ['good', 'question', 'fighting', 'fire', 'mark', 'heart']
 
-    def get_emotion_counts(self, challenge, user):
-        emotion_counts = {}
-        for emotion_type in self.EMOTION_TYPES:
-            emotion_field = getattr(challenge, emotion_type)
-            count = emotion_field.count()
-            is_clicked = user in emotion_field.all()
-            emotion_counts[f'{emotion_type}_count'] = count
-            emotion_counts[f'{emotion_type}_clicked'] = is_clicked
-
-        return emotion_counts
-
-    def get(self, request, user_pk):
-        try:
-            user = User.objects.get(pk=user_pk)
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        # Get the most recent challenge for the user
-        recent_challenge = Challenge.objects.filter(user=user).order_by('-created_at').first()
-
-        if not recent_challenge:
-            return Response({'error': '유저의 챌린지가 아직 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
-
-        emotion_counts = self.get_emotion_counts(recent_challenge, user)
-
-        response_data = {
-            'message': '리액션 갯수 및 클릭 여부 조회 성공',
-            'data': {
-                'challenge_id': recent_challenge.id,
-                **emotion_counts,
-            }
-        }
-
-'''
 class AchievementRate(views.APIView):
     # @login_required
     def get(self, request):
@@ -378,41 +319,7 @@ class AchievementRate(views.APIView):
                 'AchievementRate': result,
             }
         })
-'''
-class CalendarView(views.APIView):
-    def get(self, request):
-        raw_date_str = request.GET.get('date', None)
 
-        if not raw_date_str:
-            return Response({'error': 'Date parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 슬래시 제거
-        date_str = unquote(raw_date_str.rstrip('/'))
-
-        try:
-            date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-            return Response({'error': 'Invalid date format. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
-
-        achieves = Achieve.objects.filter(date=date)
-
-        data = []
-        for achieve in achieves:
-            goal_content = achieve.goal.content
-            goal_id = achieve.goal.id
-            challenge_name = achieve.goal.challenge.name
-            is_done = achieve.is_done
-
-            data.append({
-                'goal_content': goal_content,
-                'goal_id':goal_id,
-                'challenge_name': challenge_name,
-                'is_done': is_done
-            })
-
-        return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
-
-'''
 
 class CalendarView(views.APIView):
     def get(self, request):
@@ -449,7 +356,6 @@ class CalendarView(views.APIView):
 
         return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
     
-
 class BallView(views.APIView):
     permission_classes = [IsAuthorOrReadOnly]
 
