@@ -49,17 +49,17 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
 
-    'rest_framework.authtoken',
-    'rest_auth',
+    #'rest_framework.authtoken',
+    #'rest_auth',
 
     # django-allauth
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'rest_auth.registration',
+    #'django.contrib.sites',
+    #'allauth',
+    #'allauth.account',
+    #'allauth.socialaccount',
+    #'rest_auth.registration',
     # providers(카카오가 아니어도, 네이버, 구글, 페이스북 가능)
-    'allauth.socialaccount.providers.kakao',  
+    #'allauth.socialaccount.providers.kakao',  
 
 
 
@@ -70,7 +70,7 @@ INSTALLED_APPS = [
     
 ]
 
-SITE_ID = 1
+#SITE_ID = 1
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -208,6 +208,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #KAKAO_REDIRECT_URI : env('KAKAO_REDIRECT_URI')
 #KAKAO_CLIENT_SECRET_KEY : env('KAKAO_CLIENT_SECRET_KEY')
 
-KAKAO_REST_API_KEY=env('KAKAO_REST_API_KEY')
-KAKAO_APP_ID=env('KAKAO_APP_ID')
-KAKAO_CLIENT_SECRET_KEY=env('KAKAO_CLIENT_SECRET_KEY')
+#KAKAO_REST_API_KEY=env('KAKAO_REST_API_KEY')
+#KAKAO_APP_ID=env('KAKAO_APP_ID')
+#KAKAO_CLIENT_SECRET_KEY=env('KAKAO_CLIENT_SECRET_KEY')
