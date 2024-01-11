@@ -24,8 +24,15 @@ class Challenge(models.Model):
 
     def __str__(self):
         return f'{self.id} - {self.user}'
-
-
+'''   
+@receiver(post_save, sender=Challenge)
+def create_ball(sender, instance, created, **kwargs):
+    if created:
+        ball = Ball.objects.create(user=instance.user, challenge=instance)
+        # user 필드에 instance.user 할당
+        ball.user = instance.user
+        ball.save()
+'''
 class Goals(models.Model):
     challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='goals')
     content = models.TextField(blank=True)
@@ -79,6 +86,17 @@ class Ball(models.Model):
     challenge=models.ForeignKey(Challenge, on_delete=models.CASCADE, null=True) #챌린지 한 개당 여의주 한개 
     time = models.IntegerField(default=1)
     count = models.IntegerField(default=1)
+    last_updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f'{self.id} - {self.user}'
+    
+@receiver(post_save, sender=Challenge)
+def create_ball(sender, instance, created, **kwargs):
+    if created:
+        # User 모델의 balls 필드를 1 증가시킴
+        instance.user.balls += 1
+        instance.user.save()
+
+        # Ball 모델에 새로운 Ball 객체 생성
+        Ball.objects.create(user=instance.user, challenge=instance)
