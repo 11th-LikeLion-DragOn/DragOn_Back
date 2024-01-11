@@ -21,7 +21,8 @@ from django.http import JsonResponse
 #from dragon.settings import KAKAO_CLIENT_ID, REDIRECT_URI
 import requests
 # Create your views here.
-
+import allauth
+from rest_framework import generics
 import dragon
 
 BASE_URL = 'http://drag-on.shop'
@@ -31,7 +32,7 @@ KAKAO_CONFIG = {
     #"KAKAO_REDIRECT_URI": f"http://drag-on.shop/accounts/kakao/callback",
     "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback/",
     "KAKAO_CLIENT_SECRET_KEY": getattr(dragon.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
-    #"KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
+    "KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
 }
 
 
