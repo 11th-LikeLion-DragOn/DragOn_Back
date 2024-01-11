@@ -356,53 +356,7 @@ class CalendarView(views.APIView):
 
         return Response({'date': date_str, 'data': data}, status=status.HTTP_200_OK)
     
-class BallView(views.APIView):
-    permission_classes = [IsAuthorOrReadOnly]
 
-    def patch(self, request, goal_pk, *args, **kwargs):
-        date_param = self.request.query_params.get('date', None)
-        if not date_param:
-            return Response({"error": "Date parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
-        date_str = unquote(date_param.rstrip('/'))
-
-        try:
-            date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-            return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
-
-        goal = get_object_or_404(Goals, pk=goal_pk)
-
-        # 원자적인 트랜잭션을 시작합니다.
-        with transaction.atomic():
-            # 가져오기 조건에 맞는 Achieve 필터링
-            achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False)
-
-            if not achieves.exists():
-                return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
-
-            ball = get_object_or_404(Ball, user=request.user)
-            if ball.count == 1:
-                # Achieve 업데이트
-                for achieve in achieves:
-                    # Ensure that the user owns the Achieve before updating
-                    if achieve.goal.challenge.user != request.user:
-                        return Response({"error": "You don't have permission to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
-
-                    achieve.is_done = True
-                    achieve.save()
-
-                # Ball 업데이트
-                ball.count = 0
-                ball.time = 1
-                ball.save()
-            else:
-                return Response({"error": "You don't have ball to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
-
-        achieve = Achieve.objects.filter(goal=goal, date=date)
-        data = AchieveSerializer(achieve,many=True)
-
-        return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
-    
 class AchievementView(views.APIView):
     permission_classes = [IsAuthorOrReadOnly]
 
@@ -439,54 +393,125 @@ class AchievementView(views.APIView):
                 achieve_serializer=AchieveSerializer(achieve)
                 return Response({'message': '목표 달성 여부 변경 성공', 'data': achieve_serializer.data}, status=status.HTTP_200_OK)
 
-
-
 '''
-class AllCalendarView(views.APIView):
-    def get(self, request, user_pk):
-        # 사용자 가져오기
-        user = get_object_or_404(User, pk=user_pk)
-        
-        # 날짜 매개 변수 가져오기
-        date_param = request.GET.get('date')
+class BallView(views.APIView):
+    permission_classes = [IsAuthorOrReadOnly]
 
+
+    def patch(self, request, goal_pk, *args, **kwargs):
+        date_param = self.request.query_params.get('date', None)
         if not date_param:
-            return Response({'error': 'Invalid date parameter'}, status=status.HTTP_400_BAD_REQUEST)
-            
+            return Response({"error": "Date parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
         date_str = unquote(date_param.rstrip('/'))
+
         try:
-            selected_date = timezone.datetime.strptime(date_str, '%Y-%m')
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
-            return Response({'error': 'Invalid date format'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+        
 
-        # MM의 첫째 날짜 및 마지막 날짜 계산
-        start_date = (selected_date.replace(day=1) - timedelta(days=6)).date()
-        end_date = ((selected_date.replace(day=1) + timedelta(days=31)).replace(day=1) + timedelta(days=6) - timedelta(days=1)).date()
+        # 원자적인 트랜잭션을 시작합니다.
+        with transaction.atomic():
+            ball = get_object_or_404(Ball, user=request.user)
 
-        result = []
+            time_difference = timezone.now() - ball.last_updated
+            if time_difference >= timedelta(minutes=3):  # 3분 이상 경과했을 경우
+                ball.count += 1
+                ball.save()
+            else:
+                remaining_time = timedelta(minutes=3) - time_difference
+                return Response({"error": f"여의주 충전까지 {remaining_time.seconds // 60}분 {remaining_time.seconds % 60}초 남았습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 사용자에게 연결된 가장 최근의 챌린지 가져오기
-        recent_challenge = Challenge.objects.filter(user=user).order_by('-created_at').first()
+            goal = get_object_or_404(Goals, pk=goal_pk)
+            # 가져오기 조건에 맞는 Achieve 필터링
+            achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False)
 
-        if not recent_challenge:
-            return Response({'error': 'No challenge found for the user'}, status=status.HTTP_400_BAD_REQUEST)
+            if not achieves.exists():
+                return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # 챌린지의 모든 목표 가져오기
-        goals = Goals.objects.filter(challenge=recent_challenge)
+            ball = get_object_or_404(Ball, user=request.user)
+            if ball.count == 1:
+                # Achieve 업데이트
+                for achieve in achieves:
+                    # Ensure that the user owns the Achieve before updating
+                    if achieve.goal.challenge.user != request.user:
+                        return Response({"error": "You don't have permission to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
 
-        # 각 목표에 대해 성취 조회
-        for current_date in (start_date + timedelta(n) for n in range((end_date - start_date).days + 1)):
-            goal_result = {'date': current_date.strftime('%Y-%m-%d')}
+                    achieve.is_done = True
+                    achieve.save()
 
-            for goal in goals:
-                achieve = Achieve.objects.filter(goal=goal, date=current_date).first()
+                # Ball 업데이트
+                ball.count = 0
+                ball.time = 1
+                ball.last_updated = datetime.now()  # 현재 시간으로 갱신
+                ball.save()
+            else:
+                return Response({"error": "You don't have ball to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
 
-                goal_result[f'goal_id:{goal.id}'] = {'name': goal.content, 'is_done': achieve.is_done} if achieve else None
+        achieve = Achieve.objects.filter(goal=goal, date=date)
+        data = AchieveSerializer(achieve,many=True)
 
-            result.append(goal_result)
+        return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
+'''
 
-        return Response({'data': result}, status=status.HTTP_200_OK)
-    '''
+class BallView(views.APIView):
+    permission_classes = [IsAuthorOrReadOnly]
+
+
+    def patch(self, request, goal_pk, *args, **kwargs):
+        date_param = self.request.query_params.get('date', None)
+        if not date_param:
+            return Response({"error": "Date parameter is missing"}, status=status.HTTP_400_BAD_REQUEST)
+        date_str = unquote(date_param.rstrip('/'))
+
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "Invalid date format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+        # 원자적인 트랜잭션을 시작합니다.
+        with transaction.atomic():
+            ball = get_object_or_404(Ball, user=request.user)
+
+
+            if (timezone.now() - ball.last_updated).days >= 7:
+                ball.count += 1
+                ball.save()
+            else:
+                remaining_days = 7 - (timezone.now() - ball.last_updated).days
+                return Response({"error": f"여의주 충전까지 {remaining_days}일 남았습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+            goal = get_object_or_404(Goals, pk=goal_pk)
+            # 가져오기 조건에 맞는 Achieve 필터링
+            achieves = Achieve.objects.filter(goal=goal, date=date, is_done=False)
+
+            if not achieves.exists():
+                return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
+
+            ball = get_object_or_404(Ball, user=request.user)
+            if ball.count == 1:
+                # Achieve 업데이트
+                for achieve in achieves:
+                    # Ensure that the user owns the Achieve before updating
+                    if achieve.goal.challenge.user != request.user:
+                        return Response({"error": "You don't have permission to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
+
+                    achieve.is_done = True
+                    achieve.save()
+
+                # Ball 업데이트
+                ball.count = 0
+                ball.time = 1
+                ball.last_updated = datetime.now()  # 현재 시간으로 갱신
+                ball.save()
+            else:
+                return Response({"error": "You don't have ball to update this Achieve"}, status=status.HTTP_403_FORBIDDEN)
+
+        achieve = Achieve.objects.filter(goal=goal, date=date)
+        data = AchieveSerializer(achieve,many=True)
+
+        return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
 
 class AllCalendarView(views.APIView):
     def get(self, request, user_pk):
