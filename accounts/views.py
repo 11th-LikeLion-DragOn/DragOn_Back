@@ -14,6 +14,8 @@ from django.contrib.auth import authenticate, login, logout
 from .models import *
 from .serializers import *
 
+import dragon
+
 
 from urllib.parse import urlencode
 from urllib.request import urlopen, Request
@@ -22,9 +24,13 @@ from django.http import JsonResponse
 import requests
 # Create your views here.
 
-import dragon
 
-'''
+from rest_auth.registration.views import SocialLoginView                   
+# from allauth.socialaccount.providers.kakao import views as kakao_views     
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client  
+from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
+
+
 BASE_URL = 'http://drag-on.shop'
 
 KAKAO_CONFIG = {
@@ -34,7 +40,7 @@ KAKAO_CONFIG = {
     "KAKAO_CLIENT_SECRET_KEY": getattr(dragon.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
     "KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
 }
-'''
+
 
 
 kakao_login_uri = "https://kauth.kakao.com/oauth/authorize"
@@ -203,7 +209,7 @@ class KakaoCallbackView(views.APIView):
 
 
 
-
+'''
 class KakaoLoginView(views.APIView):
     permission_classes = (AllowAny,)
 
@@ -288,7 +294,6 @@ class KakaoCallbackView(views.APIView):
                 if serializer1.is_valid():
                     return Response({'message':'카카오 회원가입 성공','data':serializer1.validated_data}, status=HTTP_201_CREATED)
             return Response({'message':'카카오 회원가입 실패','error':serializer.errors},status=HTTP_400_BAD_REQUEST)
-'''
 
 
 class LogoutView(views.APIView):
