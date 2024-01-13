@@ -15,7 +15,7 @@ from .models import *
 from .serializers import *
 
 import dragon
-
+import allauth
 
 from urllib.parse import urlencode
 from urllib.request import urlopen, Request
@@ -25,12 +25,12 @@ import requests
 # Create your views here.
 
 
-from rest_auth.registration.views import SocialLoginView                   
-# from allauth.socialaccount.providers.kakao import views as kakao_views     
+#from rest_auth.registration.views import SocialLoginView                   
+from allauth.socialaccount.providers.kakao import views as kakao_views     
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client  
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 
-'''
+
 BASE_URL = 'http://drag-on.shop'
 
 KAKAO_CONFIG = {
@@ -41,7 +41,6 @@ KAKAO_CONFIG = {
     "KAKAO_PW":getattr(dragon.settings.base, 'KAKAO_PW', None),
 }
 
-'''
 
 kakao_login_uri = "https://kauth.kakao.com/oauth/authorize"
 kakao_token_uri = "https://kauth.kakao.com/oauth/token"
@@ -120,7 +119,7 @@ class DeleteView(views.APIView):
         user.delete()
         return Response({'message': '계정 삭제 성공'}, status=HTTP_204_NO_CONTENT)
 
-'''
+
 
 
 
@@ -209,7 +208,7 @@ class KakaoCallbackView(views.APIView):
                     return Response({'message':'카카오 회원가입 성공','data':serializer1.validated_data}, status=HTTP_201_CREATED)
             return Response({'message':'카카오 회원가입 실패','error':serializer.errors},status=HTTP_400_BAD_REQUEST)
 
-'''
+
 class LogoutView(views.APIView):
     def post(self, request):
         # 로그아웃 처리
