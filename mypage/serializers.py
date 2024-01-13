@@ -26,12 +26,14 @@ class FollowSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'profile', 'nickname']
 
 class AllProfileSerializer(serializers.ModelSerializer):
+    #real_balls = serializers.SerializerMethodField()
     class Meta:
         model = User
         fields = ['id','nickname','balls']
 
 
 
+'''
 class AProfileSerializer(serializers.ModelSerializer):
     real_balls = serializers.SerializerMethodField()
 
@@ -48,6 +50,30 @@ class AProfileSerializer(serializers.ModelSerializer):
 
 
         elif ((timezone.now() - latest_ball.updated_at).days >= 7) and (latest_ball.count == 1):
+            latest_ball.count += 0
+
+        return latest_ball.count
+'''
+
+
+class AProfileSerializer(serializers.ModelSerializer):
+    real_balls = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'nickname', 'profile', 'balls','real_balls']
+
+    def get_real_balls(self, user):
+        # 사용자의 최신 Ball 객체를 검색합니다.
+        latest_ball = user.user_balls.order_by('-updated_at').first()
+
+        if ((timezone.now() - latest_ball.updated_at) >= timedelta(minutes=2)) and (latest_ball.count == 0):
+            latest_ball.count += 1
+            #latest_ball.save()
+            #user.balls = latest_ball.count
+
+
+        elif ((timezone.now() - latest_ball.updated_at) >= timedelta(minutes=2)) and (latest_ball.count == 1):
             latest_ball.count += 0
 
         return latest_ball.count
