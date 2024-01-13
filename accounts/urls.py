@@ -12,6 +12,6 @@ urlpatterns = [
     path('changenickname/', NicknameUpdateView.as_view()),
     path('password_reset/', ChangePasswordView.as_view()),
     path('delete/', DeleteView.as_view()),
-    #path('kakao/login/', KakaoLoginView.as_view()),
-    #path('kakao/callback/', KakaoCallbackView.as_view()),
+    path('kakao/login/', KakaoLoginView.as_view()),
+    path('kakao/callback/', KakaoCallbackView.as_view()),
 ]

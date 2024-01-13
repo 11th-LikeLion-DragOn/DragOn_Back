@@ -122,7 +122,7 @@ class DeleteView(views.APIView):
 
 
 
-'''
+
 class KakaoLoginView(views.APIView):
     permission_classes = (AllowAny,)
 
@@ -207,7 +207,7 @@ class KakaoCallbackView(views.APIView):
                 if serializer1.is_valid():
                     return Response({'message':'카카오 회원가입 성공','data':serializer1.validated_data}, status=HTTP_201_CREATED)
             return Response({'message':'카카오 회원가입 실패','error':serializer.errors},status=HTTP_400_BAD_REQUEST)
-'''
+
 
 class LogoutView(views.APIView):
     def post(self, request):
