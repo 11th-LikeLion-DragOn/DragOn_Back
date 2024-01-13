@@ -10,46 +10,6 @@ class GoalsSerializer(serializers.ModelSerializer):
         model=Goals
         fields=['id','challenge', 'content', 'activate']
 
-'''
-class ChallengeSerializer(serializers.ModelSerializer):
-    ended_at = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Challenge
-        fields = ['user', 'id', 'name', 'period', 'created_at', 'ended_at']
-        read_only_fields = ['user']
-
-
-    def get_ended_at(self, obj):
-        created_at = obj.created_at
-        period = obj.period
-
-        if created_at is not None and period is not None:
-            # ended_at을 년-월-일 형식으로 포맷
-            ended_at = created_at + timezone.timedelta(days=period)
-            return ended_at.strftime('%Y-%m-%d')
-        else:
-            return None
-
-class GoalChallengeSerializer(serializers.ModelSerializer):
-    ended_at = serializers.SerializerMethodField()
-    goals=GoalsSerializer(many=True, read_only=True)
-    class Meta:
-        model=Challenge
-        fields=['user', 'id', 'name', 'period', 'created_at', 'ended_at', 'goals']
-
-    def get_ended_at(self, obj):
-        created_at = obj.created_at
-        period = obj.period
-
-        if created_at is not None and period is not None:
-            # ended_at을 년-월-일 형식으로 포맷
-            ended_at = created_at + timezone.timedelta(days=period)
-            return ended_at.strftime('%Y-%m-%d')
-        else:
-            return None
-
-'''
 class ChallengeSerializer(serializers.ModelSerializer):
     ended_at = serializers.SerializerMethodField()
     created_at = serializers.SerializerMethodField(method_name='get_created_at')
@@ -109,8 +69,6 @@ class ComUserSerializer(serializers.ModelSerializer):
         fields=['id','nickname','profile']
 
 
-
-        
 class RecommentsSerializer(serializers.ModelSerializer):
     updated_at = serializers.SerializerMethodField(method_name='get_updated_at')
     created_at = serializers.SerializerMethodField(method_name='get_created_at')

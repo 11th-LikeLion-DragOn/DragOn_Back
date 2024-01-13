@@ -15,7 +15,10 @@ from main.models import Achieve
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from django.utils.http import unquote
+from django.utils import timezone
+from datetime import timedelta
 
+from django.db import transaction
 
 from rest_framework import status, views
 from rest_framework.response import Response
@@ -83,11 +86,12 @@ class TestView(views.APIView):
 
 
 class ProfileView(views.APIView):
-    serializer_class = ProfileSerializer
+    serializer_class = AProfileSerializer
 
     def get(self, request, format=None):
         serializer = self.serializer_class(request.user) 
         return Response({'message': '프로필 확인하기', 'data': serializer.data}, status=HTTP_200_OK)
+
 
 class FollowView(views.APIView): 
     def post(self, request, user_id):
@@ -248,3 +252,4 @@ class Friend_ProfileView(views.APIView):
         }
 
         return Response(response_data)
+    

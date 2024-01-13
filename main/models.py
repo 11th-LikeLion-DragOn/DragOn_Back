@@ -26,7 +26,7 @@ class Challenge(models.Model):
         return f'{self.id} - {self.user}'
     
 
-
+'''
 @receiver(post_save, sender=Challenge)
 def create_ball(sender, instance, created, **kwargs):
     if created:
@@ -34,7 +34,7 @@ def create_ball(sender, instance, created, **kwargs):
         # user 필드에 instance.user 할당
         ball.user = instance.user
         ball.save()
-
+'''
 class Goals(models.Model):
     challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE, related_name='goals')
     content = models.TextField(blank=True)
@@ -92,4 +92,31 @@ class Ball(models.Model):
 
     def __str__(self):
         return f'{self.id} - {self.user}'
-    
+'''
+@receiver(post_save, sender=Challenge)
+def create_ball(sender, instance, created, **kwargs):
+    if created:
+        Ball.objects.create(user=instance.user, challenge=instance)
+
+@receiver(post_save, sender=Ball)
+def update_user_balls(sender, instance, created, **kwargs):
+    if created:
+        user_recent_ball = Ball.objects.filter(user=instance.user).order_by('-updated_at').first()
+        if user_recent_ball:
+            instance.user.balls = user_recent_ball.count
+            instance.user.save()
+            '''
+
+@receiver(post_save, sender=Challenge)
+def create_ball(sender, instance, created, **kwargs):
+    if created:
+        # User 모델의 balls 필드를 연결된 Ball 객체 중 최근에 생성된 객체의 count 값으로 업데이트
+        latest_ball = instance.user.user_balls.order_by('-updated_at').first()
+        if latest_ball:
+            instance.user.balls = latest_ball.count
+        else:
+            instance.user.balls = 0  # 연결된 Ball 객체가 없을 경우
+        instance.user.save()
+
+        # Ball 모델에 새로운 Ball 객체 생성
+        Ball.objects.create(user=instance.user, challenge=instance)
