@@ -415,9 +415,9 @@ class BallView(views.APIView):
 
             if not achieves.exists():
                     return Response({"message": "No matching Achieves found"}, status=status.HTTP_404_NOT_FOUND)
+            
 
-
-            if ((timezone.now() - ball.updated_at) >= timedelta(minutes=2))and(ball.count==0):
+            if ((timezone.now() - ball.updated_at).days >= 7)and(ball.count==0):
                 ball.count += 1
                 ball.save()
 
@@ -441,7 +441,7 @@ class BallView(views.APIView):
                 data = AchieveSerializer(achieve,many=True)
                 return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
             
-            elif ((timezone.now() - ball.updated_at) >= timedelta(minutes=2))and(ball.count==1):
+            elif ((timezone.now() - ball.updated_at).days >= 7)and(ball.count==1):
 
                 # Achieve 업데이트
                 for achieve in achieves:
@@ -464,11 +464,8 @@ class BallView(views.APIView):
                 return Response({"message": "Achieves and Ball updated successfully", "data": data.data}, status=status.HTTP_200_OK)
             
             else:
-                remaining_time = ball.updated_at + timedelta(minutes=2) - timezone.now()
-                remaining_minutes = remaining_time.total_seconds() // 60
-                remaining_seconds = remaining_time.total_seconds() % 60
-                data = {"now": timezone.now(), "last_update": ball.updated_at, "remaining_time": remaining_time, "remaining_minutes": remaining_minutes, "remaining_seconds": remaining_seconds}
-                return Response({"error": f"여의주 충전까지 {int(remaining_minutes)}분 {int(remaining_seconds)}초 남았습니다.", "data": data}, status=status.HTTP_400_BAD_REQUEST)
+                remaining_days = 7 - (timezone.now() - ball.updated_at).days
+                return Response({"error": f"여의주 충전까지 {remaining_days}일 남았습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 class AllCalendarView(views.APIView):
     def get(self, request, user_pk):
